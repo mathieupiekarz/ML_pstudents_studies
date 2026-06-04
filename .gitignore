@@ -37,6 +37,15 @@ Thumbs.db
 *.swo
 *~
 
+# Sorties analyses factorielles
+src/FAMD/outputs/
+src/ACP/results/*
+!src/ACP/results/.gitkeep
+src/ACM/results/*
+!src/ACM/results/.gitkeep
+src/shared/results/*
+!src/shared/results/.gitkeep
+
 # Cursor
 .cursor/
 
@@ -44,3 +53,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+
+# autres
+notes.*
