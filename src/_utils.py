@@ -21,24 +21,11 @@ SRC_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SRC_DIR.parent
 DATA_PATH = PROJECT_ROOT / "data" / "data_global.csv"
 
-ACP_RESULTS_DIR = SRC_DIR / "ACP" / "results"
-ACM_RESULTS_DIR = SRC_DIR / "ACM" / "results"
 SHARED_RESULTS_DIR = SRC_DIR / "shared" / "results"
 
 SUMMARY_PATH = SHARED_RESULTS_DIR / "factor_analysis_summary.txt"
 TYPOLOGY_PATH = SHARED_RESULTS_DIR / "variable_typology.csv"
 EXPLORATION_GUIDE_PATH = SHARED_RESULTS_DIR / "exploration_guide.txt"
-
-
-def results_dir_for(method: Literal["ACP", "ACM"]) -> Path:
-    return ACP_RESULTS_DIR if method == "ACP" else ACM_RESULTS_DIR
-
-
-def ensure_results_dir(method: Literal["ACP", "ACM"]) -> Path:
-    SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out = results_dir_for(method)
-    out.mkdir(parents=True, exist_ok=True)
-    return out
 
 
 def load_data() -> pd.DataFrame:
@@ -136,9 +123,6 @@ def impute_qualitative(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
 def n_axes_for_threshold(cum_inertia: np.ndarray, threshold: float) -> int:
     """
     Premier nombre d'axes dont l'inertie cumulée atteint threshold (ex. 0.90).
-
-    Les seuils 90 % / 95 % aident à choisir combien d'axes regarder ;
-    ce n'est pas une règle absolue pour l'interprétation.
     """
     idx = np.where(cum_inertia >= threshold)[0]
     return int(idx[0] + 1) if len(idx) else len(cum_inertia)
@@ -258,8 +242,8 @@ def print_exploration_footer(
     n_axes_95: int,
     top_dim1: list[str],
     top_dim2: list[str],
+    results_dir: Path | None = None,
 ) -> None:
-    results = results_dir_for(method)
     print(f"\n=== {method} — exploration ===")
     print(f"Variables : {n_vars}")
     print(f"Axes conseillés (90 % / 95 % inertie cumulée) : {n_axes_90} / {n_axes_95}")
@@ -269,5 +253,6 @@ def print_exploration_footer(
         "Figures prioritaires : scree, cumulative, contributions, "
         + ("biplot" if method == "ACP" else "asymmetric map")
     )
-    print(f"Résultats {method} : {results.resolve()}")
+    if results_dir:
+        print(f"Résultats {method} : {results_dir.resolve()}")
     print(f"Fichiers partagés : {SHARED_RESULTS_DIR.resolve()}")
