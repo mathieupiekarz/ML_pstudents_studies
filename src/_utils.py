@@ -65,21 +65,6 @@ def get_run_name(argv: list[str] | None = None) -> str:
     return name
 
 
-def results_dir_for(method: Literal["ACP", "ACM"]) -> Path:
-    return ACP_RESULTS_DIR if method == "ACP" else ACM_RESULTS_DIR
-
-
-def ensure_results_dir(
-    method: Literal["ACP", "ACM"], run_name: str | None = None
-) -> Path:
-    SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out = results_dir_for(method)
-    if run_name:
-        out = out / run_name
-    out.mkdir(parents=True, exist_ok=True)
-    return out
-
-
 def load_data() -> pd.DataFrame:
     if not DATA_PATH.exists():
         raise FileNotFoundError(f"Fichier introuvable : {DATA_PATH}")
@@ -331,9 +316,9 @@ def print_exploration_footer(
     n_axes_95: int,
     top_dim1: list[str],
     top_dim2: list[str],
-    results_dir: Path | None = None,
+    results_dir: Path,
 ) -> None:
-    results = results_dir if results_dir is not None else results_dir_for(method)
+    results = results_dir
     print(f"\n=== {method} — exploration ===")
     print(f"Variables : {n_vars}")
     print(f"Axes conseillés (90 % / 95 % inertie cumulée) : {n_axes_90} / {n_axes_95}")

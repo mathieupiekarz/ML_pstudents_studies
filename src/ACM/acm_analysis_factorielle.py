@@ -170,8 +170,11 @@ def plot_asymmetric_map(
 def main() -> None:
     global RESULTS_DIR
     run_name = get_run_name()
-    RESULTS_DIR = ensure_results_dir("ACM", run_name)
-    df = load_data()
+    RESULTS_DIR = RESULTS_DIR / run_name
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    df_raw = load_data()
+    df = apply_preprocessing(df_raw)
     typology = build_typology(df)
     acm_cols = get_acm_columns(typology)
 

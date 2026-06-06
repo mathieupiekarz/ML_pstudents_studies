@@ -17,15 +17,12 @@ for path in (str(SCRIPT_DIR), str(SRC_DIR)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-RESULTS_DIR = SCRIPT_DIR / "results"
-
-# Colonnes de coloration / tri pour les cartes (faciles à changer).
-COLOR_CATEGORICAL = "Mjob"
-COLOR_CONTINUOUS = "G3.m"
-HEATMAP_SORT = "Mjob"
 CORRECTION = "cailliez"
 
 from _utils import build_typology, get_aftd_groups, get_run_name, load_data
+from config import apply_preprocessing, results_suffix
+
+RESULTS_DIR = SCRIPT_DIR / f"results{results_suffix()}"
 from gower_mds import classical_mds, gower_distance_matrix
 from plots import (
     plot_gower_heatmap,
@@ -76,13 +73,29 @@ def main() -> int:
     RESULTS_DIR = RESULTS_DIR / run_name
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    df = load_data()
+    df_raw = load_data()
+    df = apply_preprocessing(df_raw)
+    print(f"Prétraitement : {results_suffix()} -> {df.shape[1]} colonnes")
+
     typology = build_typology(df)
     groups = get_aftd_groups(typology)
 
     print("Groupes de variables (AFTD) :")
     for key, cols in groups.items():
         print(f"  {key} ({len(cols)}) : {cols}")
+
+    # Colonnes de coloration / tri dérivées des groupes (robustes aux exclusions
+    # et au moyennage .m/.p, ex. G3.m -> G3).
+    color_categorical = (
+        groups["nominal"][0]
+        if groups["nominal"]
+        else (groups["binary"][0] if groups["binary"] else None)
+    )
+    color_continuous = next(
+        (c for c in ("G3", "G3.m", "G3.p") if c in df.columns),
+        groups["quantitative"][0] if groups["quantitative"] else None,
+    )
+    heatmap_sort = color_categorical
 
     distance = gower_distance_matrix(
         df,
@@ -96,28 +109,36 @@ def main() -> int:
     if mds_result.coordinates.shape[1] < 2:
         print("Warning: fewer than 2 positive eigenvalues; some plots may fail.")
 
-    plot_paths = [
-        RESULTS_DIR / "01_scree_plot.png",
-        RESULTS_DIR / f"02_individuals_by_{COLOR_CATEGORICAL}.png",
-        RESULTS_DIR / f"03_individuals_by_{COLOR_CONTINUOUS.replace('.', '')}.png",
-        RESULTS_DIR / "04_gower_heatmap.png",
-        RESULTS_DIR / "05_variable_contributions.png",
-    ]
+    plot_paths: list[Path] = []
 
-    plot_scree(mds_result, plot_paths[0])
-    plot_individuals_categorical(
-        mds_result.coordinates,
-        df[COLOR_CATEGORICAL],
-        plot_paths[1],
-        title=f"AFTD — Carte des individus (axes 1–2), colorée par {COLOR_CATEGORICAL}",
-    )
-    plot_individuals_continuous(
-        mds_result.coordinates,
-        df[COLOR_CONTINUOUS],
-        plot_paths[2],
-        title=f"AFTD — Carte des individus (axes 1–2), colorée par {COLOR_CONTINUOUS}",
-    )
-    plot_gower_heatmap(distance, df[HEATMAP_SORT], plot_paths[3])
+    scree_path = RESULTS_DIR / "01_scree_plot.png"
+    plot_scree(mds_result, scree_path)
+    plot_paths.append(scree_path)
+
+    if color_categorical is not None:
+        cat_path = RESULTS_DIR / f"02_individuals_by_{color_categorical}.png"
+        plot_individuals_categorical(
+            mds_result.coordinates,
+            df[color_categorical],
+            cat_path,
+            title=f"AFTD — Carte des individus (axes 1–2), colorée par {color_categorical}",
+        )
+        plot_paths.append(cat_path)
+
+    if color_continuous is not None:
+        cont_path = RESULTS_DIR / f"03_individuals_by_{color_continuous.replace('.', '')}.png"
+        plot_individuals_continuous(
+            mds_result.coordinates,
+            df[color_continuous],
+            cont_path,
+            title=f"AFTD — Carte des individus (axes 1–2), colorée par {color_continuous}",
+        )
+        plot_paths.append(cont_path)
+
+    if heatmap_sort is not None:
+        heatmap_path = RESULTS_DIR / "04_gower_heatmap.png"
+        plot_gower_heatmap(distance, df[heatmap_sort], heatmap_path)
+        plot_paths.append(heatmap_path)
 
     correlations = variable_axis_correlations(
         df,
@@ -127,7 +148,9 @@ def main() -> int:
         groups["nominal"],
         groups["ordinal"],
     )
-    plot_variable_contributions(correlations, plot_paths[4])
+    contrib_path = RESULTS_DIR / "05_variable_contributions.png"
+    plot_variable_contributions(correlations, contrib_path)
+    plot_paths.append(contrib_path)
 
     print_summary_table(mds_result)
 

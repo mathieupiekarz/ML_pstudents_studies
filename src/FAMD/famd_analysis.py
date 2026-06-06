@@ -29,13 +29,15 @@ EXPLORATORY_MODE = True  # Pas d'exclusion de variables « cible »
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 DATA_PATH = PROJECT_ROOT / "data" / "data_global.csv"
-OUTPUT_DIR = SCRIPT_DIR / "outputs"
 
 # Classification partagée (mêmes règles que ACP/ACM/AFTD).
 if str(SCRIPT_DIR.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR.parent))
 
 from _utils import build_typology, get_famd_groups, get_run_name  # noqa: E402
+from config import apply_preprocessing, results_suffix  # noqa: E402
+
+OUTPUT_DIR = SCRIPT_DIR / f"outputs{results_suffix()}"
 
 N_COMPONENTS = 10
 TOP_N_CONTRIB = 15
@@ -355,7 +357,9 @@ def main() -> int:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     generated: list[Path] = []
 
-    df = load_data()
+    df_raw = load_data()
+    df = apply_preprocessing(df_raw)
+    print(f"Prétraitement : {results_suffix()} -> {df.shape[1]} colonnes")
     if not EXPLORATORY_MODE:
         print("Attention : EXPLORATORY_MODE désactivé.", file=sys.stderr)
 
