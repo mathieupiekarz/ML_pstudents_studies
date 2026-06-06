@@ -7,6 +7,8 @@ L'ACP porte sur les variables quantitatives ; l'ACM sur qualitatives et binaires
 
 from __future__ import annotations
 
+import re
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -15,7 +17,27 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 
 # Seuil : au-delà, une variable numérique est traitée comme quantitative (ACP).
+# Utilisé uniquement en repli si une colonne n'est pas couverte par les règles.
 MAX_MODALITIES = 6
+
+# ---------------------------------------------------------------------------
+# Classification explicite des variables (par nom de base, suffixe .m/.p retiré)
+# ---------------------------------------------------------------------------
+BINARY_BASE = {
+    "school", "sex", "address", "famsize", "Pstatus", "nursery", "internet",
+    "schoolsup", "famsup", "paid", "activities", "higher", "romantic",
+}
+NOMINAL_BASE = {"Mjob", "Fjob", "reason", "guardian"}
+ORDINAL_BASE = {
+    "Medu", "Fedu", "traveltime", "studytime",
+    "famrel", "freetime", "goout", "Dalc", "Walc", "health",
+}
+QUANTITATIVE_BASE = {"age", "failures", "absences", "G1", "G2", "G3"}
+
+
+def _base_name(name: str) -> str:
+    """Retire le suffixe matière .m / .p pour retrouver le nom de base."""
+    return re.sub(r"\.(m|p)$", "", name)
 
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SRC_DIR.parent
@@ -26,6 +48,36 @@ SHARED_RESULTS_DIR = SRC_DIR / "shared" / "results"
 SUMMARY_PATH = SHARED_RESULTS_DIR / "factor_analysis_summary.txt"
 TYPOLOGY_PATH = SHARED_RESULTS_DIR / "variable_typology.csv"
 EXPLORATION_GUIDE_PATH = SHARED_RESULTS_DIR / "exploration_guide.txt"
+
+
+def get_run_name(argv: list[str] | None = None) -> str:
+    """Nom de sauvegarde obligatoire (1er argument CLI)."""
+    args = sys.argv[1:] if argv is None else argv
+    if not args or not args[0].strip():
+        raise SystemExit(
+            "Erreur : nom de sauvegarde requis.\nUsage : <script> <nom_du_run>"
+        )
+    name = args[0].strip()
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
+        raise SystemExit(
+            "Nom invalide : lettres, chiffres, '.', '_', '-' uniquement."
+        )
+    return name
+
+
+def results_dir_for(method: Literal["ACP", "ACM"]) -> Path:
+    return ACP_RESULTS_DIR if method == "ACP" else ACM_RESULTS_DIR
+
+
+def ensure_results_dir(
+    method: Literal["ACP", "ACM"], run_name: str | None = None
+) -> Path:
+    SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    out = results_dir_for(method)
+    if run_name:
+        out = out / run_name
+    out.mkdir(parents=True, exist_ok=True)
+    return out
 
 
 def load_data() -> pd.DataFrame:
@@ -40,42 +92,48 @@ def _initial_type(series: pd.Series) -> str:
     return "text"
 
 
+def _classify_by_heuristic(n_mod: int, type_initial: str) -> tuple[str, str]:
+    """Repli : classification par nombre de modalités (colonnes hors règles)."""
+    if type_initial == "text":
+        if n_mod <= 2:
+            return "binaire", f"texte, {n_mod} modalité(s) → binaire (repli)"
+        return "nominale", f"texte, {n_mod} modalités → nominale (repli)"
+    if n_mod <= 2:
+        return "binaire", f"numérique, {n_mod} modalité(s) → binaire (repli)"
+    if n_mod <= MAX_MODALITIES:
+        return "ordinale", f"numérique, {n_mod} modalités → ordinale (repli)"
+    return "quantitative", f"numérique, {n_mod} modalités → quantitative (repli)"
+
+
 def classify_column(series: pd.Series, name: str) -> dict[str, str | int]:
     """
-    Détermine le type retenu et l'analyse cible (ACP ou ACM).
+    Détermine le type retenu et l'analyse cible selon des règles explicites.
 
-    Les numériques à peu de modalités (≤ MAX_MODALITIES) vont en ACM
-    (échelles ordinales, binaires codées en nombres).
+    Les règles sont fixées par nom de base (suffixe .m/.p retiré) :
+    - binaire / nominale / ordinale → ACM ;
+    - quantitative → ACP.
+    Une colonne non couverte retombe sur l'heuristique par nombre de modalités.
     """
     type_initial = _initial_type(series)
     n_mod = int(series.nunique(dropna=True))
+    base = _base_name(name)
 
-    if type_initial == "text" or pd.api.types.is_object_dtype(series):
-        if n_mod <= 2:
-            type_retenu = "binaire"
-            raison = f"texte, {n_mod} modalité(s) → binaire qualitative"
-        else:
-            type_retenu = "qualitative"
-            raison = f"texte, {n_mod} modalités → qualitative"
-        utilisee = "ACM"
-    elif n_mod <= 2:
+    if base in BINARY_BASE:
         type_retenu = "binaire"
-        raison = f"numérique, {n_mod} modalité(s) → binaire qualitative"
-        utilisee = "ACM"
-    elif n_mod <= MAX_MODALITIES:
-        type_retenu = "qualitative"
-        raison = (
-            f"numérique, {n_mod} modalités (≤ {MAX_MODALITIES}) "
-            "→ qualitative ordinale"
-        )
-        utilisee = "ACM"
-    else:
+        raison = f"règle explicite : {base} → binaire"
+    elif base in NOMINAL_BASE:
+        type_retenu = "nominale"
+        raison = f"règle explicite : {base} → qualitative nominale"
+    elif base in ORDINAL_BASE:
+        type_retenu = "ordinale"
+        raison = f"règle explicite : {base} → qualitative ordinale"
+    elif base in QUANTITATIVE_BASE:
         type_retenu = "quantitative"
-        raison = (
-            f"numérique, {n_mod} modalités (> {MAX_MODALITIES}) "
-            "→ quantitative"
-        )
-        utilisee = "ACP"
+        raison = f"règle explicite : {base} → quantitative"
+    else:
+        type_retenu, raison = _classify_by_heuristic(n_mod, type_initial)
+
+    utilisee = "ACP" if type_retenu == "quantitative" else "ACM"
 
     return {
         "variable": name,
@@ -102,6 +160,37 @@ def get_acp_columns(typology: pd.DataFrame) -> list[str]:
 
 def get_acm_columns(typology: pd.DataFrame) -> list[str]:
     return typology.loc[typology["utilisee_dans"] == "ACM", "variable"].tolist()
+
+
+def _columns_of_type(typology: pd.DataFrame, type_retenu: str) -> list[str]:
+    return typology.loc[typology["type_retenu"] == type_retenu, "variable"].tolist()
+
+
+def get_aftd_groups(typology: pd.DataFrame) -> dict[str, list[str]]:
+    """Groupes pour l'AFTD : quantitative / binary / nominal / ordinal."""
+    return {
+        "quantitative": _columns_of_type(typology, "quantitative"),
+        "binary": _columns_of_type(typology, "binaire"),
+        "nominal": _columns_of_type(typology, "nominale"),
+        "ordinal": _columns_of_type(typology, "ordinale"),
+    }
+
+
+def get_famd_groups(
+    typology: pd.DataFrame,
+) -> tuple[list[str], list[str], list[str]]:
+    """Groupes pour la FAMD : (numeric, categorical, binary).
+
+    numeric = quantitative ; binary = binaire ;
+    categorical = nominale + ordinale (les ordinales sont traitées comme
+    qualitatives par prince).
+    """
+    numeric = _columns_of_type(typology, "quantitative")
+    binary = _columns_of_type(typology, "binaire")
+    categorical = _columns_of_type(typology, "nominale") + _columns_of_type(
+        typology, "ordinale"
+    )
+    return numeric, categorical, binary
 
 
 def impute_quantitative(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
@@ -244,6 +333,7 @@ def print_exploration_footer(
     top_dim2: list[str],
     results_dir: Path | None = None,
 ) -> None:
+    results = results_dir if results_dir is not None else results_dir_for(method)
     print(f"\n=== {method} — exploration ===")
     print(f"Variables : {n_vars}")
     print(f"Axes conseillés (90 % / 95 % inertie cumulée) : {n_axes_90} / {n_axes_95}")

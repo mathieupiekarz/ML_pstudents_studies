@@ -9,6 +9,7 @@ dependencies = [
     "numpy",
     "matplotlib",
     "seaborn",
+    "scipy",
     "scikit-learn",
     "prince",
 ]

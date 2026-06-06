@@ -42,16 +42,25 @@ Dans `data_global.csv`, les colonnes dupliquées portent `.m` (mathématiques) o
 
 Source unique : `data/data_global.csv`. Exploration globale (aucune variable exclue).
 
+Chaque script attend un **nom de sauvegarde** obligatoire en argument. Les sorties
+sont écrites dans un sous-dossier portant ce nom (`.../<nom>/`), sans écraser les
+exécutions précédentes :
+
 ```bash
 uv sync
-uv run python src/ACP/acp_analysis_factorielle.py
-uv run python src/ACM/acm_analysis_factorielle.py
-uv run python src/FAMD/famd_analysis.py
+uv run python src/ACP/acp_analysis_factorielle.py run1
+uv run python src/ACM/acm_analysis_factorielle.py run1
+uv run python src/FAMD/famd_analysis.py run1
+uv run python src/AFTD/main.py run1
 ```
+
+Sans argument, le script s'arrête avec un message d'usage. Le nom n'accepte que
+lettres, chiffres, `.`, `_` et `-`.
 
 Résultats :
 
-- **ACP** (`src/ACP/results/`) : variables quantitatives — CSV `pca_*`, figures scree, biplot, contributions…
-- **ACM** (`src/ACM/results/`) : variables qualitatives et binaires — CSV `mca_*`, figures scree, carte asymétrique…
-- **Partagés** (`src/shared/results/`) : `variable_typology.csv`, `factor_analysis_summary.txt`, `exploration_guide.txt`
-- **FAMD** (`src/FAMD/outputs/`) : vue globale mixte — voir `src/FAMD/README.md`
+- **ACP** (`src/ACP/results/<nom>/`) : variables quantitatives — CSV `pca_*`, figures scree, biplot, contributions…
+- **ACM** (`src/ACM/results/<nom>/`) : variables qualitatives et binaires — CSV `mca_*`, figures scree, carte asymétrique…
+- **Partagés** (`src/shared/results/`) : `variable_typology.csv`, `factor_analysis_summary.txt`, `exploration_guide.txt` (toujours à plat, communs à toutes les exécutions)
+- **FAMD** (`src/FAMD/outputs/<nom>/`) : vue globale mixte — voir `src/FAMD/README.md`
+- **AFTD** (`src/AFTD/results/<nom>/`) : MDS classique sur la distance de Gower de `data_global.csv` (382 individus, variables mixtes ; ordinales traitées en rangs ; valeurs propres négatives corrigées par la méthode de Cailliez) — `01_scree_plot.png`, cartes individus, heatmap Gower, liaisons variables/axes

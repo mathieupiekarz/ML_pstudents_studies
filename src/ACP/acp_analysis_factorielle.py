@@ -32,6 +32,7 @@ from _utils import (
     build_typology,
     compute_pca_contributions,
     get_acp_columns,
+    get_run_name,
     impute_quantitative,
     load_data,
     n_axes_for_threshold,
@@ -180,11 +181,10 @@ def plot_biplot(
 
 
 def main() -> None:
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
-    df_raw = load_data()
-    df = apply_preprocessing(df_raw)          # ← prétraitement config
-
+    global RESULTS_DIR
+    run_name = get_run_name()
+    RESULTS_DIR = ensure_results_dir("ACP", run_name)
+    df = load_data()
     typology = build_typology(df)
     acp_cols = get_acp_columns(typology)
 
@@ -271,8 +271,9 @@ def main() -> None:
         f"Axes conseillés : {n90} (90 %), {n95} (95 %).",
     )
 
-    print_exploration_footer("ACP", len(acp_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR)
-    print(f"\n→ Résultats dans : {RESULTS_DIR.resolve()}")
+    print_exploration_footer(
+        "ACP", len(acp_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR
+    )
 
 
 if __name__ == "__main__":
