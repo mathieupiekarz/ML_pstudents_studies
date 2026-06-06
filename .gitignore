@@ -66,3 +66,4 @@ src/FAMD/outputs_*/
 
 # autres
 notes.*
+config.py

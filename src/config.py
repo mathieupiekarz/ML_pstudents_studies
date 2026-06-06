@@ -22,14 +22,14 @@ INCLUDE_VARS: dict[str, bool] = {
     "paid.m": True, "activities.m": True, "higher.m": True,
     "romantic.m": True, "famrel.m": True, "freetime.m": True,
     "goout.m": True, "Dalc.m": True, "Walc.m": True, "health.m": True,
-    "absences.m": True, "G1.m": False, "G2.m": False, "G3.m": True,
+    "absences.m": True, "G1.m": False, "G2.m": False, "G3.m": False,
     # Portugais (.p)
     "guardian.p": True, "traveltime.p": True, "studytime.p": True,
     "failures.p": True, "schoolsup.p": True, "famsup.p": True,
     "paid.p": True, "activities.p": True, "higher.p": True,
     "romantic.p": True, "famrel.p": True, "freetime.p": True,
     "goout.p": True, "Dalc.p": True, "Walc.p": True, "health.p": True,
-    "absences.p": True, "G1.p": False, "G2.p": False, "G3.p": True,
+    "absences.p": True, "G1.p": False, "G2.p": False, "G3.p": False,
 }
 
 # ── Mode : moyenner les variables dupliquées .m / .p ─────────────────────────
