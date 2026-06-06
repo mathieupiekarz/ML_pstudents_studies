@@ -49,6 +49,8 @@ src/FAMD/outputs/*
 !src/FAMD/outputs/.gitkeep
 src/shared/results/*
 !src/shared/results/.gitkeep
+src/CLUSTERING/results/*
+!src/CLUSTERING/results/.gitkeep
 
 # Cursor
 .cursor/

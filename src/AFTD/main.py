@@ -109,6 +109,24 @@ def main() -> int:
     if mds_result.coordinates.shape[1] < 2:
         print("Warning: fewer than 2 positive eigenvalues; some plots may fail.")
 
+    # Sauvegarder les coordonnées pour le clustering.
+    n_dims = mds_result.coordinates.shape[1]
+    coords_df = pd.DataFrame(
+        mds_result.coordinates,
+        columns=[f"Dim{i + 1}" for i in range(n_dims)],
+    )
+    coords_df.insert(0, "individu", range(len(coords_df)))
+    coords_df.to_csv(RESULTS_DIR / "mds_coordinates.csv", index=False)
+
+    # Sauvegarder les valeurs propres pour la sélection d'axes.
+    eigen_df = pd.DataFrame({
+        "axe": range(1, n_dims + 1),
+        "eigenvalue": mds_result.eigenvalues[:n_dims],
+        "inertia_pct": mds_result.explained_variance[:n_dims],
+        "inertia_cum_pct": mds_result.cumulative_variance[:n_dims],
+    })
+    eigen_df.to_csv(RESULTS_DIR / "mds_eigenvalues.csv", index=False)
+
     plot_paths: list[Path] = []
 
     scree_path = RESULTS_DIR / "01_scree_plot.png"
