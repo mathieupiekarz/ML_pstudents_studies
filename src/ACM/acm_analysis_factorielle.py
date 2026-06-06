@@ -3,7 +3,11 @@
 ACM (MCA) — variables qualitatives et binaires de data_global.csv.
 
 Complète l'ACP : comportements, socio-démographie, échelles à peu de modalités.
-Les binaires sont détectées même si codées en nombres (≤ 2 modalités).
+
+Paramètres dans config.py :
+  REMOVE_G1_G2    — retire G1.m, G2.m, G1.p, G2.p avant l'analyse
+  AVERAGE_MAT_POR — moyenne les paires .m/.p en une seule variable
+  → Le dossier results s'appelle results_full, results_no_g1g2, results_avg, etc.
 """
 
 from __future__ import annotations
@@ -22,10 +26,8 @@ import prince
 import seaborn as sns
 
 from _utils import (
-    ACM_RESULTS_DIR as RESULTS_DIR,
     build_typology,
     compute_mca_modality_contributions,
-    ensure_results_dir,
     get_acm_columns,
     impute_qualitative,
     load_data,
@@ -36,8 +38,12 @@ from _utils import (
     write_exploration_guide_section,
     write_summary_section,
 )
+from config import apply_preprocessing, results_suffix
 
 sns.set_theme(style="whitegrid")
+
+_SCRIPT_DIR = Path(__file__).resolve().parent
+RESULTS_DIR = _SCRIPT_DIR / f"results{results_suffix()}"
 
 
 def _axis_labels(pct: np.ndarray, n: int = 2) -> tuple[str, str]:
@@ -95,16 +101,12 @@ def plot_modality_contributions_bar(
     plt.close(fig)
 
 
-def plot_modalities(
-    col_coords: pd.DataFrame, pct: np.ndarray
-) -> None:
+def plot_modalities(col_coords: pd.DataFrame, pct: np.ndarray) -> None:
     xlabel, ylabel = _axis_labels(pct)
     x = col_coords.iloc[:, 0].values
     y = col_coords.iloc[:, 1].values
     labels = col_coords.index.astype(str)
-    colors = [
-        hash(modality_variable_label(m)) % 10 for m in labels
-    ]
+    colors = [hash(modality_variable_label(m)) % 10 for m in labels]
 
     fig, ax = plt.subplots(figsize=(10, 8))
     scatter = ax.scatter(x, y, c=colors, cmap="tab10", s=80, alpha=0.85)
@@ -125,13 +127,7 @@ def plot_modalities(
 def plot_individuals_mca(row_coords: pd.DataFrame, pct: np.ndarray) -> None:
     xlabel, ylabel = _axis_labels(pct)
     fig, ax = plt.subplots(figsize=(8, 7))
-    ax.scatter(
-        row_coords.iloc[:, 0],
-        row_coords.iloc[:, 1],
-        alpha=0.5,
-        s=25,
-        c="teal",
-    )
+    ax.scatter(row_coords.iloc[:, 0], row_coords.iloc[:, 1], alpha=0.5, s=25, c="teal")
     ax.axhline(0, color="lightgray", linewidth=0.5)
     ax.axvline(0, color="lightgray", linewidth=0.5)
     ax.set_xlabel(xlabel)
@@ -147,28 +143,18 @@ def plot_asymmetric_map(
     col_coords: pd.DataFrame,
     pct: np.ndarray,
 ) -> None:
-    """Carte asymétrique : individus (points) et modalités (triangles)."""
     xlabel, ylabel = _axis_labels(pct)
     fig, ax = plt.subplots(figsize=(11, 9))
     ax.scatter(
-        row_coords.iloc[:, 0],
-        row_coords.iloc[:, 1],
-        alpha=0.25,
-        s=15,
-        c="gray",
-        label="Individus",
+        row_coords.iloc[:, 0], row_coords.iloc[:, 1],
+        alpha=0.25, s=15, c="gray", label="Individus",
     )
     cx = col_coords.iloc[:, 0].values
     cy = col_coords.iloc[:, 1].values
     ax.scatter(cx, cy, marker="^", s=60, c="crimson", label="Modalités", zorder=5)
     for xi, yi, lab in zip(cx, cy, col_coords.index.astype(str)):
         if (xi**2 + yi**2) > 0.01:
-            ax.annotate(
-                lab.split("__")[-1][:12],
-                (xi, yi),
-                fontsize=5,
-                color="darkred",
-            )
+            ax.annotate(lab.split("__")[-1][:12], (xi, yi), fontsize=5, color="darkred")
     ax.axhline(0, color="lightgray", linewidth=0.5)
     ax.axvline(0, color="lightgray", linewidth=0.5)
     ax.set_xlabel(xlabel)
@@ -181,8 +167,11 @@ def plot_asymmetric_map(
 
 
 def main() -> None:
-    ensure_results_dir("ACM")
-    df = load_data()
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    df_raw = load_data()
+    df = apply_preprocessing(df_raw)          # ← prétraitement config
+
     typology = build_typology(df)
     acm_cols = get_acm_columns(typology)
 
@@ -224,23 +213,13 @@ def main() -> None:
     contrib.to_csv(RESULTS_DIR / "mca_modality_contributions.csv")
     row_out.to_csv(RESULTS_DIR / "mca_individual_coordinates.csv", index=False)
 
-    pct_display = pct
-
-    plot_scree_mca(pct_display, cum)
+    plot_scree_mca(pct, cum)
     plot_cumulative_mca(cum, n90, n95)
-    plot_modality_contributions_bar(
-        contrib, 0, RESULTS_DIR / "mca_modality_contributions_dim1.png"
-    )
-    plot_modality_contributions_bar(
-        contrib, 1, RESULTS_DIR / "mca_modality_contributions_dim2.png"
-    )
-    plot_modalities(col_coords.iloc[:, :2], pct_display)
-    plot_individuals_mca(row_coords.iloc[:, :2], pct_display)
-    plot_asymmetric_map(
-        row_coords.iloc[:, :2],
-        col_coords.iloc[:, :2],
-        pct_display,
-    )
+    plot_modality_contributions_bar(contrib, 0, RESULTS_DIR / "mca_modality_contributions_dim1.png")
+    plot_modality_contributions_bar(contrib, 1, RESULTS_DIR / "mca_modality_contributions_dim2.png")
+    plot_modalities(col_coords.iloc[:, :2], pct)
+    plot_individuals_mca(row_coords.iloc[:, :2], pct)
+    plot_asymmetric_map(row_coords.iloc[:, :2], col_coords.iloc[:, :2], pct)
 
     top1 = top_contributors(contrib, 0)
     top2 = top_contributors(contrib, 1)
@@ -248,9 +227,10 @@ def main() -> None:
     write_summary_section(
         "ACM",
         [
-            f"Observations totales : {len(df)}",
+            f"Observations totales : {len(df_raw)}",
             f"Observations utilisées (ACM) : {n_obs}",
             f"Variables ACM ({len(acm_cols)}) : {', '.join(acm_cols)}",
+            f"Prétraitement : {results_suffix()}",
             f"Nombre d'axes pour 90 % d'inertie : {n90}",
             f"Nombre d'axes pour 95 % d'inertie : {n95}",
         ],
@@ -258,16 +238,15 @@ def main() -> None:
 
     write_exploration_guide_section(
         "ACM",
+        f"Dossier résultats : results{results_suffix()}\n"
         "mca_screeplot.png : structure des variables qualitatives.\n"
-        "mca_cumulative_inertia.png : nombre d'axes MCA à retenir.\n"
         "mca_modality_contributions_dim1/2.png : modalités qui structurent chaque axe.\n"
         "mca_asymmetric_map.png : liens profils élèves ↔ catégories.\n"
-        f"Axes conseillés : {n90} (90 %), {n95} (95 %).\n"
-        "Pistes : modalités éloignées sur un axe → croisements / tableaux ; "
-        "compléter avec l'ACP pour relier comportement et notes.",
+        f"Axes conseillés : {n90} (90 %), {n95} (95 %).",
     )
 
-    print_exploration_footer("ACM", len(acm_cols), n90, n95, top1, top2)
+    print_exploration_footer("ACM", len(acm_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR)
+    print(f"\n→ Résultats dans : {RESULTS_DIR.resolve()}")
 
 
 if __name__ == "__main__":

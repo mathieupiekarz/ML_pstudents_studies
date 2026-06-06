@@ -5,6 +5,11 @@ ACP (PCA) — variables quantitatives de data_global.csv.
 Exploration globale : toutes les colonnes sont typées automatiquement ;
 seules les quantitatives (non binaires / peu de modalités) entrent dans l'ACP.
 Les données sont centrées-réduites avant PCA.
+
+Paramètres dans config.py :
+  REMOVE_G1_G2    — retire G1.m, G2.m, G1.p, G2.p avant l'analyse
+  AVERAGE_MAT_POR — moyenne les paires .m/.p en une seule variable
+  → Le dossier results s'appelle results_full, results_no_g1g2, results_avg, etc.
 """
 
 from __future__ import annotations
@@ -24,10 +29,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from _utils import (
-    ACP_RESULTS_DIR as RESULTS_DIR,
     build_typology,
     compute_pca_contributions,
-    ensure_results_dir,
     get_acp_columns,
     impute_quantitative,
     load_data,
@@ -37,8 +40,13 @@ from _utils import (
     write_exploration_guide_section,
     write_summary_section,
 )
+from config import apply_preprocessing, results_suffix
 
 sns.set_theme(style="whitegrid")
+
+# Dossier résultats dynamique selon config
+_SCRIPT_DIR = Path(__file__).resolve().parent
+RESULTS_DIR = _SCRIPT_DIR / f"results{results_suffix()}"
 
 
 def _axis_labels(pct: np.ndarray, n: int = 2) -> tuple[str, str]:
@@ -172,8 +180,11 @@ def plot_biplot(
 
 
 def main() -> None:
-    ensure_results_dir("ACP")
-    df = load_data()
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    df_raw = load_data()
+    df = apply_preprocessing(df_raw)          # ← prétraitement config
+
     typology = build_typology(df)
     acp_cols = get_acp_columns(typology)
 
@@ -241,9 +252,10 @@ def main() -> None:
     write_summary_section(
         "ACP",
         [
-            f"Observations totales : {len(df)}",
+            f"Observations totales : {len(df_raw)}",
             f"Observations utilisées (ACP) : {n_obs}",
             f"Variables ACP : {', '.join(acp_cols)}",
+            f"Prétraitement : {results_suffix()}",
             f"Nombre d'axes pour 90 % d'inertie : {n90}",
             f"Nombre d'axes pour 95 % d'inertie : {n95}",
         ],
@@ -251,16 +263,16 @@ def main() -> None:
 
     write_exploration_guide_section(
         "ACP",
+        f"Dossier résultats : results{results_suffix()}\n"
         "pca_screeplot.png : inertie concentrée ou diffuse ?\n"
         "pca_cumulative_inertia.png : combien d'axes pour 90 % / 95 % ?\n"
-        "pca_variable_contributions_dim1/2.png : quelles notes ou absences pilotent chaque axe ?\n"
-        "pca_biplot.png : quels profils d'élèves sont liés à quelles variables ?\n"
-        f"Axes conseillés : {n90} (90 %), {n95} (95 %).\n"
-        "Pistes : si G1/G2/G3 dominent l'axe 1, analyser la progression des notes ; "
-        "si absences dominent, croiser avec variables ACM.",
+        "pca_variable_contributions_dim1/2.png : variables qui pilotent chaque axe.\n"
+        "pca_biplot.png : profils d'élèves liés aux variables.\n"
+        f"Axes conseillés : {n90} (90 %), {n95} (95 %).",
     )
 
-    print_exploration_footer("ACP", len(acp_cols), n90, n95, top1, top2)
+    print_exploration_footer("ACP", len(acp_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR)
+    print(f"\n→ Résultats dans : {RESULTS_DIR.resolve()}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,21 @@
+Gestion des zéros
+Les G3 = 0 sont probablement des abandons ou absences à l'exam, pas de vraies notes nulles. Deux options : les exclure pour ne pas biaiser les analyses, ou les garder comme profil "décrocheur" et chercher ce qui les caractérise (absences, alcool, failures). La deuxième option est plus intéressante pour la soutenance.
+
+G1 et G2
+Corrélées à 0.80 et 0.90 avec G3 — trop proches pour être des variables explicatives utiles. On les met en variables supplémentaires dans l'ACP (comme vu dans le poly) : elles ne construisent pas les axes mais on vérifie qu'elles s'y projettent bien. Pour la partie supervisée on pourra les réintroduire et mesurer leur poids.
+
+Analyse exploratoire (ch.3)
+Pas de valeurs manquantes. Les notes en maths (moyenne ~10.4) sont plus faibles qu'en portugais (~11.9). Le facteur catégoriel le plus discriminant est "higher" : +3.8 points de G3 pour les élèves qui visent les études sup. Le métier de la mère compte aussi (écart de 3 points entre mère au foyer et mère dans la santé). L'alcool corrèle peu avec G3 en maths (Dalc=-0.05) mais beaucoup plus en portugais (Dalc=-0.20) — effet matière-dépendant à valoriser. Le facteur numérique le plus négatif dans les deux matières : failures (-0.36 maths, -0.39 portugais).
+
+ACP (ch.5)
+Réalisée sur le dataset fusionné (382 élèves). Axe 1 (49%) = niveau scolaire général — toutes les notes G1/G2/G3 maths et portugais pointent dans la même direction, très corrélées entre elles. Axe 2 (16%) = absentéisme — absences.m et absences.p perpendiculaires aux notes, donc indépendantes du niveau. Les variables de comportement (alcool, studytime, goout) n'apparaissent pas car écrasées par les notes. → Refaire une ACP sans G1/G2 pour libérer les axes et voir les vraies variables de comportement.
+
+ACM (ch.5)
+Réalisée sur les variables catégorielles. Inertie faible par axe (5.1% et 3.9%) — normal en ACM. Les deux axes sont dominés par les modalités extrêmes : Dalc=5, traveltime=4, Walc=5, failures=3, higher=no, goout=5. Un profil à risque cohérent émerge : forte consommation d'alcool + longs trajets + redoublements + pas d'ambition scolaire. Ce profil est rare mais très isolé dans le nuage — quelques individus très atypiques. L'axe 2 ajoute une nuance familiale (famrel=1). → Ce profil est une cible naturelle pour le clustering.
+
+FAMD
+Analyse mixte sur le dataset fusionné — combine variables numériques et catégorielles. Axe 1 (~11%) = difficulté scolaire : notes et failures d'un côté, élèves en réussite de l'autre. Axe 2 = comportement social/alcool : Walc, Dalc, goout vers le haut, studytime vers le bas. Les deux axes sont quasi-perpendiculaires → niveau scolaire et consommation d'alcool sont deux dimensions indépendantes. Nouvelle info par rapport à l'ACP : le sexe structure fortement l'axe 2 — les garçons sont du côté alcool/sorties, les filles du côté travail/discipline. Les modalités les plus extrêmes sur l'axe scolaire : higher=no et schoolsup=yes. On travaille sur le dataset fusionné pour la suite, en mentionnant ponctuellement les différences maths/portugais là où elles sont significatives (ex: effet alcool plus marqué en portugais).
+
+---
+Pour la suite, on réapplique ACP, ACM et FAMD en supprimant G1 et G2 et en moyennant p et m pour chaque variable pour éviter d'avoir un doublon fortement corrélé à chaque fois.
+---
