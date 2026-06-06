@@ -12,6 +12,8 @@ dependencies = [
     "scipy",
     "scikit-learn",
     "prince",
+    "statsmodels",
+    "scikit-posthocs",
 ]
 
 [tool.uv]

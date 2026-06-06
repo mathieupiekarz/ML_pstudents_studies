@@ -32,6 +32,29 @@ INCLUDE_VARS: dict[str, bool] = {
     "absences.p": True, "G1.p": False, "G2.p": False, "G3.p": False,
 }
 
+# ── Cibles de l'analyse supervisée (Phases A / B / C) ────────────────────────
+# Variables à expliquer. Doivent exister dans data_global.csv (colonnes brutes).
+# Idéalement exclues des réductions (INCLUDE_VARS=False) pour éviter les fuites.
+TARGET_VARS: list[str] = ["G3.m", "G3.p"]
+
+# Surcharge optionnelle du type de cible (sinon déduit de la typologie) :
+# valeurs acceptées : "binaire", "nominale", "ordinale", "quantitative".
+TARGET_TYPES: dict[str, str] = {}  # ex : {"G3.m": "quantitative"}
+
+# Variables explicatives jugées « actionnables » (recommandations Phase C).
+ACTIONABLE_VARS: list[str] = [
+    "studytime.m", "studytime.p", "studytime",
+    "schoolsup.m", "schoolsup.p",
+    "paid.m", "paid.p",
+    "activities.m", "activities.p",
+    "goout.m", "goout.p", "goout",
+    "Dalc.m", "Dalc.p", "Dalc",
+    "Walc.m", "Walc.p", "Walc",
+    "absences.m", "absences.p", "absences",
+    "internet", "higher.m", "higher.p",
+]
+
+
 # ── Mode : moyenner les variables dupliquées .m / .p ─────────────────────────
 # Ex : Dalc = (Dalc.m + Dalc.p) / 2  →  une seule variable par concept
 AVERAGE_MAT_POR: bool = False

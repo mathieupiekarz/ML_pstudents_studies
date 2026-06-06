@@ -80,3 +80,143 @@ Résultats :
 - **Partagés** (`src/shared/results/`) : `variable_typology.csv`, `factor_analysis_summary.txt`, `exploration_guide.txt` (toujours à plat, communs à toutes les exécutions)
 - **FAMD** (`src/FAMD/outputs/<nom>/`) : vue globale mixte — voir `src/FAMD/README.md`
 - **AFTD** (`src/AFTD/results/<nom>/`) : MDS classique sur la distance de Gower de `data_global.csv` (382 individus, variables mixtes ; ordinales traitées en rangs ; valeurs propres négatives corrigées par la méthode de Cailliez) — `01_scree_plot.png`, cartes individus, heatmap Gower, liaisons variables/axes
+
+## Clustering (`src/CLUSTERING/`)
+
+Le module applique CAH (Ward/Complete/Average), k-means et nuées dynamiques sur les
+coordonnées d'une réduction factorielle :
+
+```bash
+uv run python src/CLUSTERING/clustering.py <source> <source_run> <cluster_run> [--k K] [--axes N]
+uv run python src/CLUSTERING/clustering.py --help
+```
+
+- `source` : `acp | acm | famd | aftd` ; `source_run` : le run de la réduction.
+- `cluster_run` : nom libre, résultats dans `src/CLUSTERING/results/<cluster_run>/`.
+- `--k` force le nombre de clusters (sinon sélection automatique par silhouette) ;
+  `--axes` fixe le nombre d'axes retenus (sinon seuil de variance).
+
+## Analyse supervisée (`src/SUPERVISED/`)
+
+Pipeline en trois phases qui confronte les clusters à une (ou plusieurs) variable(s)
+cible(s) définie(s) dans `src/config.py` (`TARGET_VARS`, type auto-déduit de la
+typologie, surcharge possible via `TARGET_TYPES`) :
+
+- **Phase A — validation exploratoire** : test adapté au type de la cible (ANOVA ou
+  Kruskal-Wallis + Dunn, Chi² ou Fisher), tailles d'effet (η², V de Cramér),
+  boxplots/barplots, projections factorielles, heatmap.
+- **Phase B — modélisation confirmatoire** : panel de modèles (centroïdes, k-NN,
+  bayésien naïf, LDA/QDA/ADR, logistique binaire/multinomiale/ordinale + test de
+  Brant, logistique L1, arbre élagué, forêt aléatoire, gradient boosting ; OLS /
+  Ridge / Lasso pour les cibles quantitatives), règles de décision (Bayes/coûts,
+  Neyman-Pearson), régression linéaire inférentielle (ANOVA, tests t/F, diagnostics,
+  VIF, sélection Lasso/stepwise), estimation du risque (resubstitution, holdout,
+  validation croisée, bootstrap .632), importances Gini/permutation et rôle de
+  `cluster_id` (avec vs sans).
+- **Phase C — confrontation** : tableau de triangulation A vs B, conclusion
+  automatique (4 scénarios) et recommandations.
+
+```bash
+uv run python src/SUPERVISED/supervised.py <source> <source_run> <cluster_run> <analysis_run> [--method cah|kmeans|nuees]
+uv run python src/SUPERVISED/supervised.py --help
+```
+
+Les variables explicatives respectent `INCLUDE_VARS` et `AVERAGE_MAT_POR` comme
+ACP/ACM/FAMD/AFTD ; seules les cibles (`TARGET_VARS`) sont lues depuis le CSV brut.
+
+Sorties par cible dans `src/SUPERVISED/results/<analysis_run>/<cible>/` : rapports
+`report_phaseA/B/C.txt`, `synthese.txt`, tables CSV (comparaison de modèles,
+importances, coefficients, triangulation) et figures PNG (distribution, plans
+factoriels, heatmap, diagnostics de régression, arbre élagué).
+
+## Commandes CLI
+
+Référence de tous les scripts Python exécutables du projet. Prérequis commun :
+`uv sync` depuis la racine du dépôt.
+
+### Préparation des données
+
+```bash
+uv run python src/student-merge.py
+```
+
+Fusionne `data/student-mat.csv` et `data/student-por.csv` → `data/data_global.csv`
+(382 individus). Aucun argument.
+
+### Réductions factorielles
+
+Chaque script attend un **nom de run** obligatoire (`run_name`) : lettres, chiffres,
+`.`, `_`, `-` uniquement. Sorties dans un sous-dossier portant ce nom.
+
+```bash
+uv run python src/ACP/acp_analysis_factorielle.py <run_name>
+uv run python src/ACM/acm_analysis_factorielle.py <run_name>
+uv run python src/FAMD/famd_analysis.py <run_name>
+uv run python src/AFTD/main.py <run_name>
+```
+
+| Script | Dossier de sortie |
+|--------|-------------------|
+| ACP | `src/ACP/results/<run_name>/` |
+| ACM | `src/ACM/results/<run_name>/` |
+| FAMD | `src/FAMD/outputs/<run_name>/` |
+| AFTD | `src/AFTD/results/<run_name>/` |
+
+Sans argument : message d'usage et arrêt. Prétraitement (`INCLUDE_VARS`,
+`AVERAGE_MAT_POR`) lu depuis `src/config.py`.
+
+Exemple :
+
+```bash
+uv run python src/FAMD/famd_analysis.py no_G1_G2_G3
+```
+
+### Clustering
+
+```bash
+uv run python src/CLUSTERING/clustering.py <source> <source_run> <cluster_run> [--k K] [--axes N]
+uv run python src/CLUSTERING/clustering.py --help
+```
+
+| Argument | Description |
+|----------|-------------|
+| `source` | `acp` \| `acm` \| `famd` \| `aftd` |
+| `source_run` | nom du run de réduction (ex. `no_G1_G2_G3`) |
+| `cluster_run` | nom libre ; sorties dans `src/CLUSTERING/results/<cluster_run>/` |
+| `--k K` | nombre de clusters imposé (sinon sélection auto par silhouette, k ∈ [2, 8]) |
+| `--axes N` | nombre d'axes retenus (sinon seuil de variance 80 %) |
+
+Exemple :
+
+```bash
+uv run python src/CLUSTERING/clustering.py famd no_G1_G2_G3 famd_no_G1_G2_G3
+uv run python src/CLUSTERING/clustering.py famd no_G1_G2_G3 famd_k4 --k 4 --axes 5
+```
+
+### Analyse supervisée (Phases A / B / C)
+
+```bash
+uv run python src/SUPERVISED/supervised.py <source> <source_run> <cluster_run> <analysis_run> [--method cah|kmeans|nuees]
+uv run python src/SUPERVISED/supervised.py --help
+```
+
+| Argument | Description |
+|----------|-------------|
+| `source` | `acp` \| `acm` \| `famd` \| `aftd` |
+| `source_run` | nom du run de réduction |
+| `cluster_run` | nom du run de clustering (`src/CLUSTERING/results/`) |
+| `analysis_run` | nom libre ; sorties dans `src/SUPERVISED/results/<analysis_run>/` |
+| `--method` | partition utilisée : `cah` (défaut), `kmeans` ou `nuees` ; le `k` est lu depuis le fichier `<method>_labels_k*.csv` |
+
+Cibles définies dans `src/config.py` (`TARGET_VARS`). Explicatives soumises à
+`INCLUDE_VARS` et `AVERAGE_MAT_POR`.
+
+Exemple (chaîne complète) :
+
+```bash
+uv run python src/FAMD/famd_analysis.py no_G1_G2_G3
+uv run python src/CLUSTERING/clustering.py famd no_G1_G2_G3 famd_no_G1_G2_G3
+uv run python src/SUPERVISED/supervised.py famd no_G1_G2_G3 famd_no_G1_G2_G3 famd_sup
+```
+
+================================================================================

@@ -51,6 +51,8 @@ src/shared/results/*
 !src/shared/results/.gitkeep
 src/CLUSTERING/results/*
 !src/CLUSTERING/results/.gitkeep
+src/SUPERVISED/results/*
+!src/SUPERVISED/results/.gitkeep
 
 # Cursor
 .cursor/
