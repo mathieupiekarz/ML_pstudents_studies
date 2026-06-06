@@ -33,7 +33,7 @@ OUTPUT_DIR = SCRIPT_DIR / "outputs"
 if str(SCRIPT_DIR.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR.parent))
 
-from _utils import build_typology, get_famd_groups  # noqa: E402
+from _utils import build_typology, get_famd_groups, get_run_name  # noqa: E402
 
 N_COMPONENTS = 10
 TOP_N_CONTRIB = 15
@@ -548,6 +548,9 @@ def write_summary(
 # Pipeline principal
 # ---------------------------------------------------------------------------
 def main() -> int:
+    global OUTPUT_DIR
+    run_name = get_run_name()
+    OUTPUT_DIR = OUTPUT_DIR / run_name
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     generated: list[Path] = []
 

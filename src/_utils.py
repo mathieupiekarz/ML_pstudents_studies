@@ -8,6 +8,7 @@ L'ACP porte sur les variables quantitatives ; l'ACM sur qualitatives et binaires
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -51,13 +52,32 @@ TYPOLOGY_PATH = SHARED_RESULTS_DIR / "variable_typology.csv"
 EXPLORATION_GUIDE_PATH = SHARED_RESULTS_DIR / "exploration_guide.txt"
 
 
+def get_run_name(argv: list[str] | None = None) -> str:
+    """Nom de sauvegarde obligatoire (1er argument CLI)."""
+    args = sys.argv[1:] if argv is None else argv
+    if not args or not args[0].strip():
+        raise SystemExit(
+            "Erreur : nom de sauvegarde requis.\nUsage : <script> <nom_du_run>"
+        )
+    name = args[0].strip()
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
+        raise SystemExit(
+            "Nom invalide : lettres, chiffres, '.', '_', '-' uniquement."
+        )
+    return name
+
+
 def results_dir_for(method: Literal["ACP", "ACM"]) -> Path:
     return ACP_RESULTS_DIR if method == "ACP" else ACM_RESULTS_DIR
 
 
-def ensure_results_dir(method: Literal["ACP", "ACM"]) -> Path:
+def ensure_results_dir(
+    method: Literal["ACP", "ACM"], run_name: str | None = None
+) -> Path:
     SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     out = results_dir_for(method)
+    if run_name:
+        out = out / run_name
     out.mkdir(parents=True, exist_ok=True)
     return out
 
@@ -316,8 +336,9 @@ def print_exploration_footer(
     n_axes_95: int,
     top_dim1: list[str],
     top_dim2: list[str],
+    results_dir: Path | None = None,
 ) -> None:
-    results = results_dir_for(method)
+    results = results_dir if results_dir is not None else results_dir_for(method)
     print(f"\n=== {method} — exploration ===")
     print(f"Variables : {n_vars}")
     print(f"Axes conseillés (90 % / 95 % inertie cumulée) : {n_axes_90} / {n_axes_95}")

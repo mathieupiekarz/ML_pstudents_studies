@@ -27,6 +27,7 @@ from _utils import (
     compute_mca_modality_contributions,
     ensure_results_dir,
     get_acm_columns,
+    get_run_name,
     impute_qualitative,
     load_data,
     modality_variable_label,
@@ -181,7 +182,9 @@ def plot_asymmetric_map(
 
 
 def main() -> None:
-    ensure_results_dir("ACM")
+    global RESULTS_DIR
+    run_name = get_run_name()
+    RESULTS_DIR = ensure_results_dir("ACM", run_name)
     df = load_data()
     typology = build_typology(df)
     acm_cols = get_acm_columns(typology)
@@ -267,7 +270,9 @@ def main() -> None:
         "compléter avec l'ACP pour relier comportement et notes.",
     )
 
-    print_exploration_footer("ACM", len(acm_cols), n90, n95, top1, top2)
+    print_exploration_footer(
+        "ACM", len(acm_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR
+    )
 
 
 if __name__ == "__main__":

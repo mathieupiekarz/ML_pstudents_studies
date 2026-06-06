@@ -25,7 +25,7 @@ COLOR_CONTINUOUS = "G3.m"
 HEATMAP_SORT = "Mjob"
 CORRECTION = "cailliez"
 
-from _utils import build_typology, get_aftd_groups, load_data
+from _utils import build_typology, get_aftd_groups, get_run_name, load_data
 from gower_mds import classical_mds, gower_distance_matrix
 from plots import (
     plot_gower_heatmap,
@@ -71,6 +71,9 @@ def print_summary_table(result) -> None:
 
 def main() -> int:
     """Load global data, run Gower + MDS, produce plots and console summary."""
+    global RESULTS_DIR
+    run_name = get_run_name()
+    RESULTS_DIR = RESULTS_DIR / run_name
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     df = load_data()
