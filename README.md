@@ -47,6 +47,7 @@ uv sync
 uv run python src/ACP/acp_analysis_factorielle.py
 uv run python src/ACM/acm_analysis_factorielle.py
 uv run python src/FAMD/famd_analysis.py
+uv run python src/AFTD/main.py
 ```
 
 Résultats :
@@ -55,3 +56,4 @@ Résultats :
 - **ACM** (`src/ACM/results/`) : variables qualitatives et binaires — CSV `mca_*`, figures scree, carte asymétrique…
 - **Partagés** (`src/shared/results/`) : `variable_typology.csv`, `factor_analysis_summary.txt`, `exploration_guide.txt`
 - **FAMD** (`src/FAMD/outputs/`) : vue globale mixte — voir `src/FAMD/README.md`
+- **AFTD** (`src/AFTD/results/`) : MDS classique sur la distance de Gower de `data_global.csv` (382 individus, variables mixtes ; ordinales traitées en rangs ; valeurs propres négatives corrigées par la méthode de Cailliez) — `01_scree_plot.png`, cartes individus, heatmap Gower, liaisons variables/axes

@@ -894,6 +894,7 @@ dependencies = [
     { name = "pandas" },
     { name = "prince" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "seaborn" },
 ]
 
@@ -904,6 +905,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=3.0.3" },
     { name = "prince" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "seaborn" },
 ]
 

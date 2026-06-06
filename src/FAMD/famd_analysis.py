@@ -29,6 +29,12 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent
 DATA_PATH = PROJECT_ROOT / "data" / "data_global.csv"
 OUTPUT_DIR = SCRIPT_DIR / "outputs"
 
+# Classification partagée (mêmes règles que ACP/ACM/AFTD).
+if str(SCRIPT_DIR.parent) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR.parent))
+
+from _utils import build_typology, get_famd_groups  # noqa: E402
+
 N_COMPONENTS = 10
 TOP_N_CONTRIB = 15
 COLOR_PRIORITY = ["sex", "school", "address", "internet"]
@@ -123,30 +129,6 @@ def fit_famd(df: pd.DataFrame) -> prince.FAMD:
 # ---------------------------------------------------------------------------
 # Préparation des données
 # ---------------------------------------------------------------------------
-def classify_variables(df: pd.DataFrame) -> tuple[list[str], list[str], list[str]]:
-    """Détecte variables numériques, catégorielles et binaires."""
-    numeric: list[str] = []
-    categorical: list[str] = []
-    binary: list[str] = []
-
-    for col in df.columns:
-        series = df[col]
-        if pd.api.types.is_numeric_dtype(series):
-            n_unique = series.nunique(dropna=True)
-            if n_unique == 2:
-                binary.append(col)
-            else:
-                numeric.append(col)
-        else:
-            n_unique = series.nunique(dropna=True)
-            if n_unique == 2:
-                binary.append(col)
-            else:
-                categorical.append(col)
-
-    return numeric, categorical, binary
-
-
 def impute_and_prepare(
     df: pd.DataFrame,
     numeric_cols: list[str],
@@ -573,7 +555,8 @@ def main() -> int:
     if not EXPLORATORY_MODE:
         print("Attention : EXPLORATORY_MODE désactivé.", file=sys.stderr)
 
-    numeric_cols, categorical_cols, binary_cols = classify_variables(df)
+    typology = build_typology(df)
+    numeric_cols, categorical_cols, binary_cols = get_famd_groups(typology)
     qual_cols = categorical_cols + binary_cols
 
     print(f"Variables numériques ({len(numeric_cols)}) : {numeric_cols}")
