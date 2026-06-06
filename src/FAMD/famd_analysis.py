@@ -37,7 +37,7 @@ if str(SCRIPT_DIR.parent) not in sys.path:
 from _utils import build_typology, get_famd_groups, get_run_name  # noqa: E402
 from config import apply_preprocessing, results_suffix  # noqa: E402
 
-OUTPUT_DIR = SCRIPT_DIR / f"outputs{results_suffix()}"
+OUTPUT_DIR = SCRIPT_DIR / "outputs"
 
 N_COMPONENTS = 10
 TOP_N_CONTRIB = 15

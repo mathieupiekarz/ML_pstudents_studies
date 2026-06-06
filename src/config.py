@@ -34,7 +34,7 @@ INCLUDE_VARS: dict[str, bool] = {
 
 # ── Mode : moyenner les variables dupliquées .m / .p ─────────────────────────
 # Ex : Dalc = (Dalc.m + Dalc.p) / 2  →  une seule variable par concept
-AVERAGE_MAT_POR: bool = True
+AVERAGE_MAT_POR: bool = False
 
 # Variables à moyenner quand AVERAGE_MAT_POR = True
 # Chaque tuple : (col_mat, col_por, nom_résultant)

@@ -49,11 +49,6 @@ src/FAMD/outputs/*
 !src/FAMD/outputs/.gitkeep
 src/shared/results/*
 !src/shared/results/.gitkeep
-# Variantes suffixées générées (results_avg_excl4/, outputs_avg/, ...)
-src/ACP/results_*/
-src/ACM/results_*/
-src/AFTD/results_*/
-src/FAMD/outputs_*/
 
 # Cursor
 .cursor/

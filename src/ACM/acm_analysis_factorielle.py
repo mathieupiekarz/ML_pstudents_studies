@@ -44,7 +44,7 @@ from config import apply_preprocessing, results_suffix
 sns.set_theme(style="whitegrid")
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = _SCRIPT_DIR / f"results{results_suffix()}"
+RESULTS_DIR = _SCRIPT_DIR / "results"
 
 
 def _axis_labels(pct: np.ndarray, n: int = 2) -> tuple[str, str]:
@@ -241,7 +241,7 @@ def main() -> None:
 
     write_exploration_guide_section(
         "ACM",
-        f"Dossier résultats : results{results_suffix()}\n"
+        f"Dossier résultats : {RESULTS_DIR}\n"
         "mca_screeplot.png : structure des variables qualitatives.\n"
         "mca_modality_contributions_dim1/2.png : modalités qui structurent chaque axe.\n"
         "mca_asymmetric_map.png : liens profils élèves ↔ catégories.\n"

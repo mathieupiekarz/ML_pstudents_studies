@@ -47,7 +47,7 @@ sns.set_theme(style="whitegrid")
 
 # Dossier résultats dynamique selon config
 _SCRIPT_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = _SCRIPT_DIR / f"results{results_suffix()}"
+RESULTS_DIR = _SCRIPT_DIR / "results"
 
 
 def _axis_labels(pct: np.ndarray, n: int = 2) -> tuple[str, str]:
@@ -266,7 +266,7 @@ def main() -> None:
 
     write_exploration_guide_section(
         "ACP",
-        f"Dossier résultats : results{results_suffix()}\n"
+        f"Dossier résultats : {RESULTS_DIR}\n"
         "pca_screeplot.png : inertie concentrée ou diffuse ?\n"
         "pca_cumulative_inertia.png : combien d'axes pour 90 % / 95 % ?\n"
         "pca_variable_contributions_dim1/2.png : variables qui pilotent chaque axe.\n"

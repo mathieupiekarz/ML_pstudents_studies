@@ -22,7 +22,7 @@ CORRECTION = "cailliez"
 from _utils import build_typology, get_aftd_groups, get_run_name, load_data
 from config import apply_preprocessing, results_suffix
 
-RESULTS_DIR = SCRIPT_DIR / f"results{results_suffix()}"
+RESULTS_DIR = SCRIPT_DIR / "results"
 from gower_mds import classical_mds, gower_distance_matrix
 from plots import (
     plot_gower_heatmap,
