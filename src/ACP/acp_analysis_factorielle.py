@@ -184,99 +184,11 @@ def main() -> None:
     global RESULTS_DIR
     run_name = get_run_name()
     RESULTS_DIR = RESULTS_DIR / run_name
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     df_raw = load_data()
     df = apply_preprocessing(df_raw)
-    typology = build_typology(df)
-    acp_cols = get_acp_columns(typology)
-
-    if not acp_cols:
-        raise ValueError("Aucune variable quantitative détectée pour l'ACP.")
-
-    X = impute_quantitative(df, acp_cols)
-    n_obs = len(X)
-
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    pca = PCA(n_components=None, random_state=0)
-    coords = pca.fit_transform(X_scaled)
-
-    pct = pca.explained_variance_ratio_
-    cum = np.cumsum(pct)
-    n90 = n_axes_for_threshold(cum, 0.90)
-    n95 = n_axes_for_threshold(cum, 0.95)
-
-    contrib = compute_pca_contributions(pca.components_, pca.explained_variance_)
-    contrib.index = acp_cols
-    contrib.index.name = "variable"
-
-    loadings = pd.DataFrame(
-        pca.components_.T[:, :2] * np.sqrt(pca.explained_variance_[:2]),
-        index=acp_cols,
-        columns=["Dim1", "Dim2"],
-    )
-
-    coords_df = pd.DataFrame(
-        coords,
-        columns=[f"Dim{i + 1}" for i in range(coords.shape[1])],
-    )
-    coords_df.insert(0, "individu", np.arange(1, n_obs + 1))
-
-    eigen_df = pd.DataFrame(
-        {
-            "axe": np.arange(1, len(pct) + 1),
-            "eigenvalue": pca.explained_variance_,
-            "inertia_pct": pct * 100,
-            "inertia_cum_pct": cum * 100,
-        }
-    )
-
-    eigen_df.to_csv(RESULTS_DIR / "pca_eigenvalues.csv", index=False)
-    contrib.to_csv(RESULTS_DIR / "pca_variable_contributions.csv")
-    coords_df.to_csv(RESULTS_DIR / "pca_individual_coordinates.csv", index=False)
-
-    plot_scree(pca.explained_variance_, pct, cum)
-    plot_cumulative(cum, n90, n95)
-    plot_variable_contributions_bar(
-        contrib, 0, RESULTS_DIR / "pca_variable_contributions_dim1.png"
-    )
-    plot_variable_contributions_bar(
-        contrib, 1, RESULTS_DIR / "pca_variable_contributions_dim2.png"
-    )
-    plot_variables_circle(loadings, pct * 100, acp_cols)
-    plot_individuals(coords_df, pct * 100)
-    plot_biplot(coords_df, loadings, pct * 100, acp_cols)
-
-    top1 = top_contributors(contrib, 0)
-    top2 = top_contributors(contrib, 1)
-
-    write_summary_section(
-        "ACP",
-        [
-            f"Observations totales : {len(df_raw)}",
-            f"Observations utilisées (ACP) : {n_obs}",
-            f"Variables ACP : {', '.join(acp_cols)}",
-            f"Prétraitement : {results_suffix()}",
-            f"Nombre d'axes pour 90 % d'inertie : {n90}",
-            f"Nombre d'axes pour 95 % d'inertie : {n95}",
-        ],
-    )
-
-    write_exploration_guide_section(
-        "ACP",
-        f"Dossier résultats : {RESULTS_DIR}\n"
-        "pca_screeplot.png : inertie concentrée ou diffuse ?\n"
-        "pca_cumulative_inertia.png : combien d'axes pour 90 % / 95 % ?\n"
-        "pca_variable_contributions_dim1/2.png : variables qui pilotent chaque axe.\n"
-        "pca_biplot.png : profils d'élèves liés aux variables.\n"
-        f"Axes conseillés : {n90} (90 %), {n95} (95 %).",
-    )
-
-    print_exploration_footer(
-        "ACP", len(acp_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR
-    )
+    from factor_analysis.runners import run_acp
+    run_acp(df, RESULTS_DIR, save=True)
 
 
 if __name__ == "__main__":

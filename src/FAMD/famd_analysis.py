@@ -34,7 +34,7 @@ DATA_PATH = PROJECT_ROOT / "data" / "data_global.csv"
 if str(SCRIPT_DIR.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR.parent))
 
-from _utils import build_typology, get_famd_groups, get_run_name  # noqa: E402
+from _utils import get_run_name, load_data  # noqa: E402
 from config import apply_preprocessing, results_suffix  # noqa: E402
 
 OUTPUT_DIR = SCRIPT_DIR / "outputs"
@@ -148,12 +148,8 @@ def impute_and_prepare(
 
 
 def load_data() -> pd.DataFrame:
-    if not DATA_PATH.is_file():
-        raise FileNotFoundError(f"Fichier introuvable : {DATA_PATH}")
-    df = pd.read_csv(DATA_PATH)
-    df.columns = df.columns.str.strip()
-    print(f"Données chargées : {df.shape[0]} lignes, {df.shape[1]} colonnes.")
-    return df
+    from _utils import load_data as _load
+    return _load()
 
 
 def pick_color_column(df: pd.DataFrame) -> str | None:
@@ -354,57 +350,12 @@ def main() -> int:
     global OUTPUT_DIR
     run_name = get_run_name()
     OUTPUT_DIR = OUTPUT_DIR / run_name
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    generated: list[Path] = []
 
     df_raw = load_data()
     df = apply_preprocessing(df_raw)
     print(f"Prétraitement : {results_suffix()} -> {df.shape[1]} colonnes")
-    if not EXPLORATORY_MODE:
-        print("Attention : EXPLORATORY_MODE désactivé.", file=sys.stderr)
-
-    typology = build_typology(df)
-    numeric_cols, categorical_cols, binary_cols = get_famd_groups(typology)
-    qual_cols = categorical_cols + binary_cols
-
-    df_prepared, df_imputed = impute_and_prepare(df, numeric_cols, qual_cols)
-    famd = fit_famd(df_prepared)
-
-    eigen_df = get_eigenvalues_summary(famd)
-    row_coords = get_row_coordinates(famd, df_prepared)
-    col_coords = get_column_coordinates(famd)
-    contrib = get_column_contributions(famd)
-    corr_quanti = get_column_correlations(famd, numeric_cols)
-
-    # Exports CSV
-    eigen_df.reset_index().to_csv(OUTPUT_DIR / "eigenvalues.csv", index=False)
-    row_coords.to_csv(OUTPUT_DIR / "individual_coordinates.csv")
-    col_coords.to_csv(OUTPUT_DIR / "variable_coordinates.csv")
-
-    color_col = pick_color_column(df_prepared)
-    cat_coords = compute_category_coordinates(row_coords, df_prepared, qual_cols)
-
-    # Graphiques
-    plot_scree(eigen_df, OUTPUT_DIR / "01_scree_plot.png")
-    plot_individuals(row_coords, OUTPUT_DIR / "02_individuals_map_dim1_dim2.png")
-    plot_individuals(
-        row_coords, OUTPUT_DIR / "03_individuals_colored.png",
-        color_series=df_prepared[color_col].astype(str) if color_col else None,
-        title=f"Individus colorés par {color_col}" if color_col else "Individus",
-    )
-    plot_variable_contributions(contrib, OUTPUT_DIR / "04_variable_contributions.png")
-    plot_categories_map(cat_coords, OUTPUT_DIR / "05_categories_map.png")
-    plot_correlation_circle(
-        corr_quanti if corr_quanti is not None else pd.DataFrame(),
-        OUTPUT_DIR / "06_quantitative_variables_map.png",
-        numeric_cols,
-    )
-    plot_numeric_heatmap(
-        df_imputed[numeric_cols] if numeric_cols else df_imputed.iloc[:, :0],
-        OUTPUT_DIR / "07_numeric_correlation_heatmap.png",
-    )
-    plot_biplot(row_coords, col_coords, contrib, OUTPUT_DIR / "08_famd_biplot.png")
-
+    from factor_analysis.runners import run_famd
+    run_famd(df, OUTPUT_DIR, save=True)
     print(f"\n→ Résultats dans : {OUTPUT_DIR.resolve()}")
     return 0
 

@@ -126,11 +126,12 @@ def _resolve_target_type(series: pd.Series, name: str) -> str:
 def get_target_specs(df_global: pd.DataFrame) -> list[TargetSpec]:
     """Construit la liste des cibles configurées avec leur type."""
     specs: list[TargetSpec] = []
-    for name in config.TARGET_VARS:
+    target_names = config.resolve_target_vars()
+    for name in target_names:
         if name not in df_global.columns:
             raise KeyError(
-                f"Cible {name!r} absente de data_global.csv. "
-                f"Corrigez config.TARGET_VARS."
+                f"Cible {name!r} absente du dataset. "
+                f"Corrigez config.TARGET_VARS / DATASET."
             )
         specs.append(TargetSpec(name=name, kind=_resolve_target_type(df_global[name], name)))
     return specs
@@ -186,7 +187,7 @@ def build_joined(
 
     # Variables brutes exclues (INCLUDE_VARS=False), hors cibles conservées pour prédiction.
     excluded_vars = sorted(
-        c for c, keep in config.INCLUDE_VARS.items()
+        c for c, keep in config.resolve_columns(config.DATASET, config.INCLUDE_VARS).items()
         if not keep and c in df_raw.columns and c not in target_names
     )
 

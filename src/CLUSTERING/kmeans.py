@@ -1,12 +1,5 @@
 """
-kmeans.py — K-means et méthode des nuées dynamiques.
-
-Méthodes exposées
------------------
-run_kmeans(X, k, ...)              → labels (np.ndarray)
-run_nuees_dynamiques(X, k, Z)     → labels — k-means initialisé sur centroïdes CAH
-plot_elbow_silhouette(X, k_range) → graphe double-axe inertie / silhouette
-select_k_silhouette(X, k_range)   → k optimal selon score silhouette
+kmeans.py — K-means, coude, silhouette.
 """
 
 from __future__ import annotations
@@ -15,12 +8,13 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.cluster.hierarchy import fcluster
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
+from factor_analysis.inertia_viz import LINE_MARKER
 
-# ── K-means standard ─────────────────────────────────────────────────────────
 
 def run_kmeans(
     X: np.ndarray,
@@ -29,12 +23,9 @@ def run_kmeans(
     n_init: int = 20,
     random_state: int = 42,
 ) -> np.ndarray:
-    """K-means classique. Retourne labels 0..k-1."""
     km = KMeans(k, init=init, n_init=n_init, random_state=random_state)
     return km.fit_predict(X)
 
-
-# ── Nuées dynamiques (k-means initialisé sur centroïdes CAH) ─────────────────
 
 def run_nuees_dynamiques(
     X: np.ndarray,
@@ -43,16 +34,7 @@ def run_nuees_dynamiques(
     n_init: int = 20,
     random_state: int = 42,
 ) -> np.ndarray:
-    """
-    Méthode des nuées dynamiques :
-    1. Découpe la CAH (matrice Z) en k classes.
-    2. Calcule les centroïdes de ces classes.
-    3. Utilise ces centroïdes comme initialisation du k-means.
-
-    Le k-means affine ainsi la partition CAH sans dépendre d'une initialisation aléatoire.
-    """
-    cah_labels = fcluster(Z, k, criterion="maxclust")  # 1..k
-    # Centroïdes des k classes CAH
+    cah_labels = fcluster(Z, k, criterion="maxclust")
     centroids = np.array([
         X[cah_labels == c].mean(axis=0) for c in range(1, k + 1)
     ])
@@ -60,15 +42,83 @@ def run_nuees_dynamiques(
     return km.fit_predict(X)
 
 
-# ── Sélection automatique de k ───────────────────────────────────────────────
+def compute_k_metrics(X: np.ndarray, k_range: range | list[int]) -> pd.DataFrame:
+    rows = []
+    for k in k_range:
+        km = KMeans(k, init="k-means++", n_init=20, random_state=42)
+        labels = km.fit_predict(X)
+        sil = silhouette_score(X, labels) if k > 1 else float("nan")
+        rows.append({"k": k, "inertia": km.inertia_, "silhouette": sil})
+    return pd.DataFrame(rows)
+
 
 def select_k_silhouette(X: np.ndarray, k_range: range | list[int]) -> int:
-    """Retourne le k maximisant le score silhouette moyen."""
-    scores = {k: silhouette_score(X, run_kmeans(X, k)) for k in k_range}
-    return max(scores, key=scores.__getitem__)
+    metrics = compute_k_metrics(X, k_range)
+    return suggest_k_silhouette(metrics)
 
 
-# ── Graphe elbow + silhouette ─────────────────────────────────────────────────
+def suggest_k_silhouette(metrics: pd.DataFrame) -> int:
+    idx = metrics["silhouette"].idxmax()
+    return int(metrics.loc[idx, "k"])
+
+
+def suggest_k_elbow(inertias: pd.Series) -> int:
+    """Point de coude via distance maximale à la corde."""
+    ks = inertias.index.values.astype(float)
+    ys = inertias.values.astype(float)
+    if len(ks) < 3:
+        return int(ks[0])
+    p1 = np.array([ks[0], ys[0]])
+    p2 = np.array([ks[-1], ys[-1]])
+    line = p2 - p1
+    line_norm = line / (np.linalg.norm(line) + 1e-12)
+    dists = []
+    for i in range(len(ks)):
+        p = np.array([ks[i], ys[i]])
+        dist = np.abs(np.cross(line_norm, p - p1))
+        dists.append(dist)
+    return int(ks[int(np.argmax(dists))])
+
+
+def plot_elbow(
+    metrics_by_method: dict[str, pd.DataFrame],
+    *,
+    save: bool = False,
+    out_path: Path | None = None,
+) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for method, metrics in metrics_by_method.items():
+        ax.plot(metrics["k"], metrics["inertia"], f"{LINE_MARKER}-", label=method)
+    ax.set_xlabel("k")
+    ax.set_ylabel("Inertie intra-classe")
+    ax.set_title("Méthode du coude")
+    ax.legend()
+    fig.tight_layout()
+    if save and out_path:
+        fig.savefig(out_path, dpi=150)
+        plt.close(fig)
+    return fig
+
+
+def plot_silhouette(
+    metrics_by_method: dict[str, pd.DataFrame],
+    *,
+    save: bool = False,
+    out_path: Path | None = None,
+) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for method, metrics in metrics_by_method.items():
+        ax.plot(metrics["k"], metrics["silhouette"], f"{LINE_MARKER}--", label=method)
+    ax.set_xlabel("k")
+    ax.set_ylabel("Score silhouette")
+    ax.set_title("Score silhouette moyen")
+    ax.legend()
+    fig.tight_layout()
+    if save and out_path:
+        fig.savefig(out_path, dpi=150)
+        plt.close(fig)
+    return fig
+
 
 def plot_elbow_silhouette(
     X: np.ndarray,
@@ -76,50 +126,18 @@ def plot_elbow_silhouette(
     out_path: Path,
     source_label: str = "",
 ) -> None:
-    """
-    Double axe :
-    - gauche  : inertie intra-classe (courbe en coude)
-    - droite  : score silhouette moyen (plus élevé = meilleur)
-
-    Le k optimal (silhouette) est mis en évidence.
-    """
-    ks = list(k_range)
-    inertias: list[float] = []
-    silhouettes: list[float] = []
-
-    for k in ks:
-        km = KMeans(k, init="k-means++", n_init=20, random_state=42)
-        labels = km.fit_predict(X)
-        inertias.append(km.inertia_)
-        silhouettes.append(silhouette_score(X, labels) if k > 1 else float("nan"))
-
-    best_k = ks[int(np.nanargmax(silhouettes))]
-
+    metrics = compute_k_metrics(X, k_range)
     fig, ax1 = plt.subplots(figsize=(9, 5))
-    color_inertia = "steelblue"
-    color_sil = "darkorange"
-
-    ax1.plot(ks, inertias, "o-", color=color_inertia, label="Inertie intra-classe")
-    ax1.set_xlabel("Nombre de clusters k", fontsize=11)
-    ax1.set_ylabel("Inertie", color=color_inertia, fontsize=11)
-    ax1.tick_params(axis="y", labelcolor=color_inertia)
-
+    ax1.plot(metrics["k"], metrics["inertia"], f"{LINE_MARKER}-", color="steelblue", label="Inertie")
+    ax1.set_xlabel("k")
+    ax1.set_ylabel("Inertie")
     ax2 = ax1.twinx()
-    ax2.plot(ks, silhouettes, "s--", color=color_sil, label="Silhouette moyen")
-    ax2.axvline(best_k, color="crimson", linestyle=":", linewidth=1.5,
-                label=f"k optimal = {best_k}")
-    ax2.set_ylabel("Score silhouette", color=color_sil, fontsize=11)
-    ax2.tick_params(axis="y", labelcolor=color_sil)
-
-    # Légende unifiée
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc="upper right", fontsize=9)
-
-    title = "Recherche de partitions : coude + silhouette"
+    ax2.plot(metrics["k"], metrics["silhouette"], f"{LINE_MARKER}--", color="darkorange", label="Silhouette")
+    ax2.set_ylabel("Silhouette")
+    title = "Coude + silhouette"
     if source_label:
         title += f" — {source_label}"
-    ax1.set_title(title, fontsize=12)
+    ax1.set_title(title)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

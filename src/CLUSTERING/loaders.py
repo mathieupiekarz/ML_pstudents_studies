@@ -27,6 +27,7 @@ _COORD_PATHS: dict[str, str] = {
     "acm":  "ACM/results/{run}/mca_individual_coordinates.csv",
     "famd": "FAMD/outputs/{run}/individual_coordinates.csv",
     "aftd": "AFTD/results/{run}/mds_coordinates.csv",
+    "acp_mixte": "ACP_mixte/results/{run}/pca_individual_coordinates.csv",
 }
 
 _EIGEN_PATHS: dict[str, str | None] = {
@@ -34,6 +35,7 @@ _EIGEN_PATHS: dict[str, str | None] = {
     "acm":  "ACM/results/{run}/mca_eigenvalues.csv",
     "famd": "FAMD/outputs/{run}/eigenvalues.csv",
     "aftd": "AFTD/results/{run}/mds_eigenvalues.csv",
+    "acp_mixte": "ACP_mixte/results/{run}/pca_eigenvalues.csv",
 }
 
 

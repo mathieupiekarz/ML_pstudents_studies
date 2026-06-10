@@ -1,8 +1,5 @@
 """
-Utilitaires partagés pour l'exploration factorielle ACP / ACM.
-
-Exploration globale : aucune colonne exclue (G3 incluse selon la typologie).
-L'ACP porte sur les variables quantitatives ; l'ACM sur qualitatives et binaires.
+Utilitaires partagés pour l'exploration factorielle ACP / ACM / FAMD / ACP_mixte / AFTD.
 """
 
 from __future__ import annotations
@@ -16,13 +13,8 @@ import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 
-# Seuil : au-delà, une variable numérique est traitée comme quantitative (ACP).
-# Utilisé uniquement en repli si une colonne n'est pas couverte par les règles.
 MAX_MODALITIES = 6
 
-# ---------------------------------------------------------------------------
-# Classification explicite des variables (par nom de base, suffixe .m/.p retiré)
-# ---------------------------------------------------------------------------
 BINARY_BASE = {
     "school", "sex", "address", "famsize", "Pstatus", "nursery", "internet",
     "schoolsup", "famsup", "paid", "activities", "higher", "romantic",
@@ -36,22 +28,26 @@ QUANTITATIVE_BASE = {"age", "failures", "absences", "G1", "G2", "G3"}
 
 
 def _base_name(name: str) -> str:
-    """Retire le suffixe matière .m / .p pour retrouver le nom de base."""
     return re.sub(r"\.(m|p)$", "", name)
+
 
 SRC_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SRC_DIR.parent
-DATA_PATH = PROJECT_ROOT / "data" / "data_global.csv"
-
 SHARED_RESULTS_DIR = SRC_DIR / "shared" / "results"
-
 SUMMARY_PATH = SHARED_RESULTS_DIR / "factor_analysis_summary.txt"
 TYPOLOGY_PATH = SHARED_RESULTS_DIR / "variable_typology.csv"
 EXPLORATION_GUIDE_PATH = SHARED_RESULTS_DIR / "exploration_guide.txt"
 
 
+def get_data_path(dataset: str | None = None) -> Path:
+    import config
+    ds = dataset or config.DATASET
+    if ds not in config.DATASET_PATHS:
+        raise ValueError(f"Dataset inconnu : {ds!r}")
+    return PROJECT_ROOT / "data" / config.DATASET_PATHS[ds]
+
+
 def get_run_name(argv: list[str] | None = None) -> str:
-    """Nom de sauvegarde obligatoire (1er argument CLI)."""
     args = sys.argv[1:] if argv is None else argv
     if not args or not args[0].strip():
         raise SystemExit(
@@ -65,10 +61,15 @@ def get_run_name(argv: list[str] | None = None) -> str:
     return name
 
 
-def load_data() -> pd.DataFrame:
-    if not DATA_PATH.exists():
-        raise FileNotFoundError(f"Fichier introuvable : {DATA_PATH}")
-    return pd.read_csv(DATA_PATH)
+def load_data(dataset: str | None = None) -> pd.DataFrame:
+    import config
+    path = get_data_path(dataset)
+    if not path.exists():
+        raise FileNotFoundError(f"Fichier introuvable : {path}")
+    df = pd.read_csv(path)
+    df.columns = df.columns.str.strip()
+    config.check_include_vars(df, dataset=dataset)
+    return df
 
 
 def _initial_type(series: pd.Series) -> str:
@@ -78,7 +79,6 @@ def _initial_type(series: pd.Series) -> str:
 
 
 def _classify_by_heuristic(n_mod: int, type_initial: str) -> tuple[str, str]:
-    """Repli : classification par nombre de modalités (colonnes hors règles)."""
     if type_initial == "text":
         if n_mod <= 2:
             return "binaire", f"texte, {n_mod} modalité(s) → binaire (repli)"
@@ -91,14 +91,6 @@ def _classify_by_heuristic(n_mod: int, type_initial: str) -> tuple[str, str]:
 
 
 def classify_column(series: pd.Series, name: str) -> dict[str, str | int]:
-    """
-    Détermine le type retenu et l'analyse cible selon des règles explicites.
-
-    Les règles sont fixées par nom de base (suffixe .m/.p retiré) :
-    - binaire / nominale / ordinale → ACM ;
-    - quantitative → ACP.
-    Une colonne non couverte retombe sur l'heuristique par nombre de modalités.
-    """
     type_initial = _initial_type(series)
     n_mod = int(series.nunique(dropna=True))
     base = _base_name(name)
@@ -131,7 +123,6 @@ def classify_column(series: pd.Series, name: str) -> dict[str, str | int]:
 
 
 def build_typology(df: pd.DataFrame) -> pd.DataFrame:
-    """Parcourt toutes les colonnes ; aucune exclusion métier."""
     SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     rows = [classify_column(df[col], col) for col in df.columns]
     typology = pd.DataFrame(rows)
@@ -147,12 +138,17 @@ def get_acm_columns(typology: pd.DataFrame) -> list[str]:
     return typology.loc[typology["utilisee_dans"] == "ACM", "variable"].tolist()
 
 
+def get_acp_mixte_columns(typology: pd.DataFrame) -> tuple[list[str], list[str]]:
+    quant = typology.loc[typology["type_retenu"] == "quantitative", "variable"].tolist()
+    qual = typology.loc[typology["type_retenu"] != "quantitative", "variable"].tolist()
+    return quant, qual
+
+
 def _columns_of_type(typology: pd.DataFrame, type_retenu: str) -> list[str]:
     return typology.loc[typology["type_retenu"] == type_retenu, "variable"].tolist()
 
 
 def get_aftd_groups(typology: pd.DataFrame) -> dict[str, list[str]]:
-    """Groupes pour l'AFTD : quantitative / binary / nominal / ordinal."""
     return {
         "quantitative": _columns_of_type(typology, "quantitative"),
         "binary": _columns_of_type(typology, "binaire"),
@@ -161,15 +157,7 @@ def get_aftd_groups(typology: pd.DataFrame) -> dict[str, list[str]]:
     }
 
 
-def get_famd_groups(
-    typology: pd.DataFrame,
-) -> tuple[list[str], list[str], list[str]]:
-    """Groupes pour la FAMD : (numeric, categorical, binary).
-
-    numeric = quantitative ; binary = binaire ;
-    categorical = nominale + ordinale (les ordinales sont traitées comme
-    qualitatives par prince).
-    """
+def get_famd_groups(typology: pd.DataFrame) -> tuple[list[str], list[str], list[str]]:
     numeric = _columns_of_type(typology, "quantitative")
     binary = _columns_of_type(typology, "binaire")
     categorical = _columns_of_type(typology, "nominale") + _columns_of_type(
@@ -178,8 +166,43 @@ def get_famd_groups(
     return numeric, categorical, binary
 
 
+def detect_method_set(typology: pd.DataFrame) -> list[str]:
+    has_quant = bool(_columns_of_type(typology, "quantitative"))
+    has_qual = bool(
+        _columns_of_type(typology, "binaire")
+        + _columns_of_type(typology, "nominale")
+        + _columns_of_type(typology, "ordinale")
+    )
+    if has_quant and has_qual:
+        return ["AFTD", "FAMD", "ACP_mixte"]
+    if has_quant:
+        return ["ACP", "AFTD", "FAMD"]
+    if has_qual:
+        return ["ACM", "AFTD", "FAMD"]
+    raise ValueError("Aucune variable active pour l'analyse factorielle.")
+
+
+# Méthodes exclues du notebook (AFTD : trop d'axes, graphiques illisibles).
+NOTEBOOK_EXCLUDED_METHODS: frozenset[str] = frozenset({"AFTD"})
+
+
+def detect_notebook_method_set(typology: pd.DataFrame) -> list[str]:
+    """Comme detect_method_set, sans les méthodes exclues du notebook."""
+    return [m for m in detect_method_set(typology) if m not in NOTEBOOK_EXCLUDED_METHODS]
+
+
+def n_axes_for_threshold(cum_inertia: np.ndarray, threshold: float) -> int:
+    idx = np.where(cum_inertia >= threshold)[0]
+    return int(idx[0] + 1) if len(idx) else len(cum_inertia)
+
+
+def n_axes_for_thresholds(
+    cum: np.ndarray, thresholds: tuple[float, ...] = (0.60, 0.80, 0.90)
+) -> dict[str, int]:
+    return {f"{int(t * 100)}%": n_axes_for_threshold(cum, t) for t in thresholds}
+
+
 def impute_quantitative(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
-    """Imputation par la médiane pour l'ACP (données centrées-réduites ensuite)."""
     out = df[columns].copy()
     imputer = SimpleImputer(strategy="median")
     out.iloc[:, :] = imputer.fit_transform(out)
@@ -187,25 +210,15 @@ def impute_quantitative(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
 
 
 def impute_qualitative(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
-    """Imputation par la modalité la plus fréquente pour l'ACM."""
     out = df[columns].copy().astype(str)
     imputer = SimpleImputer(strategy="most_frequent")
     out.iloc[:, :] = imputer.fit_transform(out)
     return out.astype("category")
 
 
-def n_axes_for_threshold(cum_inertia: np.ndarray, threshold: float) -> int:
-    """
-    Premier nombre d'axes dont l'inertie cumulée atteint threshold (ex. 0.90).
-    """
-    idx = np.where(cum_inertia >= threshold)[0]
-    return int(idx[0] + 1) if len(idx) else len(cum_inertia)
-
-
 def compute_pca_contributions(
     components: np.ndarray, explained_variance: np.ndarray
 ) -> pd.DataFrame:
-    """Contributions des variables (%) par axe, style ACP sur données standardisées."""
     loadings = components.T * np.sqrt(explained_variance)
     n_axes = loadings.shape[1]
     contrib = np.zeros_like(loadings)
@@ -219,10 +232,7 @@ def compute_pca_contributions(
     )
 
 
-def compute_mca_modality_contributions(
-    column_coords: pd.DataFrame,
-) -> pd.DataFrame:
-    """Contributions des modalités (%) par axe à partir des coordonnées colonnes."""
+def compute_mca_modality_contributions(column_coords: pd.DataFrame) -> pd.DataFrame:
     arr = column_coords.values.astype(float)
     n_axes = arr.shape[1]
     contrib = np.zeros_like(arr)
@@ -239,9 +249,7 @@ def compute_mca_modality_contributions(
     return out
 
 
-def top_contributors(
-    contrib: pd.DataFrame, dim: int = 0, n: int = 5
-) -> list[str]:
+def top_contributors(contrib: pd.DataFrame, dim: int = 0, n: int = 5) -> list[str]:
     col = f"Dim{dim + 1}"
     if col not in contrib.columns:
         return []
@@ -251,14 +259,12 @@ def top_contributors(
 
 
 def modality_variable_label(modality: str) -> str:
-    """Extrait le nom de variable depuis le libellé prince (var__modalité)."""
     if "__" in modality:
         return modality.split("__", 1)[0]
     return modality
 
 
 def write_summary_section(title: str, lines: list[str]) -> None:
-    """Ajoute ou remplace une section dans factor_analysis_summary.txt."""
     SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     marker_start = f"=== {title} ==="
     marker_end = f"=== fin {title} ==="
@@ -275,8 +281,8 @@ def write_summary_section(title: str, lines: list[str]) -> None:
             text = text + "\n" + block
     else:
         header = (
-            "Résumé — analyse factorielle exploratoire (data_global.csv)\n"
-            "Variables exclues : aucune (exploration globale)\n\n"
+            "Résumé — analyse factorielle exploratoire\n"
+            "Variables exclues : selon INCLUDE_VARS\n\n"
         )
         text = header + block
 
@@ -284,7 +290,7 @@ def write_summary_section(title: str, lines: list[str]) -> None:
 
 
 def write_exploration_guide_section(title: str, content: str) -> None:
-    import re
+    import re as _re
 
     SHARED_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     block = f"--- {title} ---\n{content.strip()}\n\n"
@@ -295,9 +301,9 @@ def write_exploration_guide_section(title: str, content: str) -> None:
 
     if EXPLORATION_GUIDE_PATH.exists():
         text = EXPLORATION_GUIDE_PATH.read_text(encoding="utf-8")
-        pattern = re.compile(
-            rf"--- {re.escape(title)} ---.*?(?=\n--- |\Z)",
-            re.DOTALL,
+        pattern = _re.compile(
+            rf"--- {_re.escape(title)} ---.*?(?=\n--- |\Z)",
+            _re.DOTALL,
         )
         if pattern.search(text):
             text = pattern.sub(block, text)
@@ -310,7 +316,7 @@ def write_exploration_guide_section(title: str, content: str) -> None:
 
 
 def print_exploration_footer(
-    method: Literal["ACP", "ACM"],
+    method: Literal["ACP", "ACM", "ACP_mixte"],
     n_vars: int,
     n_axes_90: int,
     n_axes_95: int,
@@ -318,7 +324,6 @@ def print_exploration_footer(
     top_dim2: list[str],
     results_dir: Path,
 ) -> None:
-    results = results_dir
     print(f"\n=== {method} — exploration ===")
     print(f"Variables : {n_vars}")
     print(f"Axes conseillés (90 % / 95 % inertie cumulée) : {n_axes_90} / {n_axes_95}")
@@ -326,7 +331,7 @@ def print_exploration_footer(
     print(f"Plus contributifs axe 2 : {', '.join(top_dim2) or '—'}")
     print(
         "Figures prioritaires : scree, cumulative, contributions, "
-        + ("biplot" if method == "ACP" else "asymmetric map")
+        + ("biplot" if method in ("ACP", "ACP_mixte") else "asymmetric map")
     )
     if results_dir:
         print(f"Résultats {method} : {results_dir.resolve()}")

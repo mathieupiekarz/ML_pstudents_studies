@@ -1,66 +1,101 @@
 ## Colonnes CSV
 
-| Colonne | Nom complet |
-|---------|-------------|
-| `school` | École |
-| `sex` | Sexe |
-| `age` | Âge |
-| `address` | Type de domicile |
-| `famsize` | Taille de la famille |
-| `Pstatus` | Cohabitation des parents |
-| `Medu` | Niveau d’éducation de la mère |
-| `Fedu` | Niveau d’éducation du père |
-| `Mjob` | Profession de la mère |
-| `Fjob` | Profession du père |
-| `reason` | Motif de choix de l’école |
-| `guardian` | Tuteur légal |
-| `traveltime` | Temps de trajet domicile–école |
-| `studytime` | Temps d’étude hebdomadaire |
-| `failures` | Nombre d’échecs passés |
-| `schoolsup` | Soutien scolaire extra |
-| `famsup` | Soutien familial à l’éducation |
-| `paid` | Cours payants dans la matière |
-| `activities` | Activités extra-scolaires |
-| `nursery` | École maternelle |
-| `higher` | Poursuite d’études supérieures |
-| `internet` | Accès Internet à domicile |
-| `romantic` | Relation amoureuse |
-| `famrel` | Qualité des relations familiales |
-| `freetime` | Temps libre |
-| `goout` | Sorties entre amis |
-| `Dalc` | Consommation d’alcool en semaine |
-| `Walc` | Consommation d’alcool le week-end |
-| `health` | État de santé |
-| `absences` | Nombre d’absences |
-| `G1` | Note de la 1ʳᵉ période |
-| `G2` | Note de la 2ᵉ période |
-| `G3` | Note finale |
+Typologie issue des règles explicites de [`src/_utils.py`](src/_utils.py) (`classify_column`).
+Les colonnes dupliquées `.m` / `.p` héritent du même type que le nom de base.
 
-Dans `data_global.csv`, les colonnes dupliquées portent `.m` (mathématiques) ou `.p` (portugais), par ex. `G3.m` = note finale en maths. Dans `data_global_R.csv`, les suffixes sont `.x` (maths) et `.y` (portugais).
+| Colonne | Nom complet | Type |
+|---------|-------------|------|
+| `school` | École | Binaire |
+| `sex` | Sexe | Binaire |
+| `age` | Âge | Quantitative |
+| `address` | Type de domicile | Binaire |
+| `famsize` | Taille de la famille | Binaire |
+| `Pstatus` | Cohabitation des parents | Binaire |
+| `Medu` | Niveau d’éducation de la mère | Qualitative ordinale |
+| `Fedu` | Niveau d’éducation du père | Qualitative ordinale |
+| `Mjob` | Profession de la mère | Qualitative nominale |
+| `Fjob` | Profession du père | Qualitative nominale |
+| `reason` | Motif de choix de l’école | Qualitative nominale |
+| `guardian` | Tuteur légal | Qualitative nominale |
+| `traveltime` | Temps de trajet domicile–école | Qualitative ordinale |
+| `studytime` | Temps d’étude hebdomadaire | Qualitative ordinale |
+| `failures` | Nombre d’échecs passés | Quantitative |
+| `schoolsup` | Soutien scolaire extra | Binaire |
+| `famsup` | Soutien familial à l’éducation | Binaire |
+| `paid` | Cours payants dans la matière | Binaire |
+| `activities` | Activités extra-scolaires | Binaire |
+| `nursery` | École maternelle | Binaire |
+| `higher` | Poursuite d’études supérieures | Binaire |
+| `internet` | Accès Internet à domicile | Binaire |
+| `romantic` | Relation amoureuse | Binaire |
+| `famrel` | Qualité des relations familiales | Qualitative ordinale |
+| `freetime` | Temps libre | Qualitative ordinale |
+| `goout` | Sorties entre amis | Qualitative ordinale |
+| `Dalc` | Consommation d’alcool en semaine | Qualitative ordinale |
+| `Walc` | Consommation d’alcool le week-end | Qualitative ordinale |
+| `health` | État de santé | Qualitative ordinale |
+| `absences` | Nombre d’absences | Quantitative |
+| `G1` | Note de la 1ʳᵉ période | Quantitative |
+| `G2` | Note de la 2ᵉ période | Quantitative |
+| `G3` | Note finale | Quantitative |
 
-## Analyse factorielle (ACP / ACM)
+Dans `data_global.csv`, les colonnes dupliquées portent `.m` (mathématiques) ou `.p` (portugais), par ex. `G3.m` = note finale en maths (type : quantitative). Dans `data_global_R.csv`, les suffixes sont `.x` (maths) et `.y` (portugais).
 
-Source unique : `data/data_global.csv`.
+## Analyse factorielle (ACP / ACM / FAMD / AFTD / ACP_mixte)
+
+### Choix du dataset (`src/config.py`)
+
+```python
+DATASET = "data_global"  # "student-mat" | "student-por" | "data_global"
+```
+
+- `student-mat.csv` — mathématiques uniquement (395 individus)
+- `student-por.csv` — portugais uniquement (649 individus)
+- `data_global.csv` — fusion des deux (382 individus, colonnes `.m` / `.p`)
 
 ### Configuration commune (`src/config.py`)
 
 Le prétraitement est centralisé dans [`src/config.py`](src/config.py) et appliqué à
-**ACP, ACM, FAMD et AFTD** juste après le chargement des données :
+**ACP, ACM, FAMD, AFTD et ACP_mixte** juste après le chargement :
 
-- `INCLUDE_VARS` : un flag `True`/`False` par variable brute (53 colonnes). Mettre
-  une variable à `False` la retire de toutes les analyses. Par défaut, seules
-  `G1.m/G1.p` et `G2.m/G2.p` sont exclues (`False`).
-- `AVERAGE_MAT_POR` : si `True` (défaut), les paires mathématiques/portugais (`.m`/`.p`)
-  d'un même concept sont moyennées en une seule variable (ex. `G3.m` + `G3.p` → `G3`).
-  La moyenne n'a lieu que si les deux moitiés de la paire sont conservées.
+- `INCLUDE_VARS` : flags **canoniques** (33 concepts : `school`, `G3`, `studytime`…).
+  Pour `data_global`, chaque concept matière est expandu en `.m` / `.p`.
+  Par défaut `G1`, `G2`, `G3` sont à `False` (réductions sans notes).
+- `AVERAGE_MAT_POR` : si `True`, moyenne les paires `.m`/`.p` (uniquement sur `data_global`).
+- `FOCUS_VAR` / `DROPOUT_VALUE` : étude du décrochage (`G3 == 0`).
 
-Le mode de prétraitement actif est rappelé dans les sorties console et le résumé,
-mais les résultats sont toujours écrits dans le dossier `results/` (ou `outputs/`
-pour FAMD) ; encoder le mode dans le nom d'exécution permet de les distinguer.
+Template versionné : [`src/config.example.py`](src/config.example.py) → copier vers `src/config.py`.
 
-Chaque script attend un **nom de sauvegarde** obligatoire en argument. Les sorties
-sont écrites dans un sous-dossier portant ce nom (`results/<nom>/`), sans
-écraser les exécutions précédentes :
+### Dispatch automatique des méthodes
+
+| Variables actives | Méthodes |
+|---|---|
+| quantitatives **et** qualitatives | AFTD, FAMD, ACP_mixte *(notebook : FAMD, ACP_mixte)* |
+| quantitatives seulement | ACP, AFTD, FAMD *(notebook : ACP, FAMD)* |
+| qualitatives seulement | ACM, AFTD, FAMD *(notebook : ACM, FAMD)* |
+
+### Notebook récapitulatif (flux principal)
+
+```bash
+uv sync --extra notebook
+uv run jupyter notebook analyse_factorielle_recap.ipynb
+```
+
+Le notebook [`analyse_factorielle_recap.ipynb`](analyse_factorielle_recap.ipynb) suit un **pipeline en 3 boutons** (chaque étape dépend de la précédente). **L'AFTD n'y est pas incluse** (trop d'axes MDS, graphiques illisibles) ; utilisez le script CLI si besoin.
+
+| Étape | Action | Paramètres saisis |
+|-------|--------|-------------------|
+| **1** | Réductions factorielles | dataset, variables, run name |
+| **2** | Coude + silhouette + décrochage G3 | seuil variance (`FloatText`), k min/max (`IntText`) |
+| **3** | k-means + profils clusters | méthode (`Dropdown`) + k final (`IntText`) |
+
+**Étape 1** : graphique comparatif inertie 1×2 (par axe + cumulée, 20 axes max), contributions Dim1, tableau récap (60 % / 80 % / 90 %, PC1, PC2).
+
+**Étape 2** : après lecture du tableau, choix du seuil → nombre d'axes retenus, courbes coude/silhouette partagées, métriques détaillées, suggestions k, projection G3=0.
+
+**Étape 3** : choix de la méthode et du k → 3.1 projection clusters, 3.2 décrochage par cluster, 3.3 heatmap z-score, 3.4 grille compacte de **toutes** les variables par cluster (4 colonnes).
+
+### Scripts CLI
 
 ```bash
 uv sync
@@ -68,18 +103,16 @@ uv run python src/ACP/acp_analysis_factorielle.py run1
 uv run python src/ACM/acm_analysis_factorielle.py run1
 uv run python src/FAMD/famd_analysis.py run1
 uv run python src/AFTD/main.py run1
+uv run python src/ACP_mixte/acp_mixte_analysis.py run1
 ```
-
-Sans argument, le script s'arrête avec un message d'usage. Le nom n'accepte que
-lettres, chiffres, `.`, `_` et `-`.
 
 Résultats :
 
-- **ACP** (`src/ACP/results/<nom>/`) : variables quantitatives — CSV `pca_*`, figures scree, biplot, contributions…
-- **ACM** (`src/ACM/results/<nom>/`) : variables qualitatives et binaires — CSV `mca_*`, figures scree, carte asymétrique…
-- **Partagés** (`src/shared/results/`) : `variable_typology.csv`, `factor_analysis_summary.txt`, `exploration_guide.txt` (toujours à plat, communs à toutes les exécutions)
-- **FAMD** (`src/FAMD/outputs/<nom>/`) : vue globale mixte — voir `src/FAMD/README.md`
-- **AFTD** (`src/AFTD/results/<nom>/`) : MDS classique sur la distance de Gower de `data_global.csv` (382 individus, variables mixtes ; ordinales traitées en rangs ; valeurs propres négatives corrigées par la méthode de Cailliez) — `01_scree_plot.png`, cartes individus, heatmap Gower, liaisons variables/axes
+- **ACP** (`src/ACP/results/<nom>/`) : variables quantitatives
+- **ACM** (`src/ACM/results/<nom>/`) : variables qualitatives et binaires
+- **ACP_mixte** (`src/ACP_mixte/results/<nom>/`) : quantitatives + qualitatives one-hot
+- **FAMD** (`src/FAMD/outputs/<nom>/`) : vue globale mixte
+- **AFTD** (`src/AFTD/results/<nom>/`) : MDS sur distance de Gower
 
 ## Clustering (`src/CLUSTERING/`)
 
@@ -153,12 +186,14 @@ uv run python src/ACP/acp_analysis_factorielle.py <run_name>
 uv run python src/ACM/acm_analysis_factorielle.py <run_name>
 uv run python src/FAMD/famd_analysis.py <run_name>
 uv run python src/AFTD/main.py <run_name>
+uv run python src/ACP_mixte/acp_mixte_analysis.py <run_name>
 ```
 
 | Script | Dossier de sortie |
 |--------|-------------------|
 | ACP | `src/ACP/results/<run_name>/` |
 | ACM | `src/ACM/results/<run_name>/` |
+| ACP_mixte | `src/ACP_mixte/results/<run_name>/` |
 | FAMD | `src/FAMD/outputs/<run_name>/` |
 | AFTD | `src/AFTD/results/<run_name>/` |
 

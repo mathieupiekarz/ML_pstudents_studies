@@ -171,86 +171,11 @@ def main() -> None:
     global RESULTS_DIR
     run_name = get_run_name()
     RESULTS_DIR = RESULTS_DIR / run_name
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     df_raw = load_data()
     df = apply_preprocessing(df_raw)
-    typology = build_typology(df)
-    acm_cols = get_acm_columns(typology)
-
-    if not acm_cols:
-        raise ValueError("Aucune variable qualitative détectée pour l'ACM.")
-
-    X = impute_qualitative(df, acm_cols)
-    n_obs = len(X)
-
-    n_categories = sum(X[c].nunique() for c in acm_cols)
-    n_comp = min(n_categories - len(acm_cols), n_obs - 1)
-    mca = prince.MCA(n_components=n_comp, random_state=0).fit(X)
-
-    pct = np.asarray(mca.percentage_of_variance_)
-    cum = np.asarray(mca.cumulative_percentage_of_variance_)
-    n90 = n_axes_for_threshold(cum / 100.0, 0.90)
-    n95 = n_axes_for_threshold(cum / 100.0, 0.95)
-
-    row_coords = mca.row_coordinates(X)
-    col_coords = mca.column_coordinates(X)
-    row_coords.columns = [f"Dim{i + 1}" for i in range(row_coords.shape[1])]
-    col_coords.columns = [f"Dim{i + 1}" for i in range(col_coords.shape[1])]
-
-    contrib = compute_mca_modality_contributions(col_coords)
-
-    row_out = row_coords.copy()
-    row_out.insert(0, "individu", np.arange(1, n_obs + 1))
-
-    eigen_df = pd.DataFrame(
-        {
-            "axe": np.arange(1, len(pct) + 1),
-            "eigenvalue": mca.eigenvalues_,
-            "inertia_pct": pct,
-            "inertia_cum_pct": cum,
-        }
-    )
-
-    eigen_df.to_csv(RESULTS_DIR / "mca_eigenvalues.csv", index=False)
-    contrib.to_csv(RESULTS_DIR / "mca_modality_contributions.csv")
-    row_out.to_csv(RESULTS_DIR / "mca_individual_coordinates.csv", index=False)
-
-    plot_scree_mca(pct, cum)
-    plot_cumulative_mca(cum, n90, n95)
-    plot_modality_contributions_bar(contrib, 0, RESULTS_DIR / "mca_modality_contributions_dim1.png")
-    plot_modality_contributions_bar(contrib, 1, RESULTS_DIR / "mca_modality_contributions_dim2.png")
-    plot_modalities(col_coords.iloc[:, :2], pct)
-    plot_individuals_mca(row_coords.iloc[:, :2], pct)
-    plot_asymmetric_map(row_coords.iloc[:, :2], col_coords.iloc[:, :2], pct)
-
-    top1 = top_contributors(contrib, 0)
-    top2 = top_contributors(contrib, 1)
-
-    write_summary_section(
-        "ACM",
-        [
-            f"Observations totales : {len(df_raw)}",
-            f"Observations utilisées (ACM) : {n_obs}",
-            f"Variables ACM ({len(acm_cols)}) : {', '.join(acm_cols)}",
-            f"Prétraitement : {results_suffix()}",
-            f"Nombre d'axes pour 90 % d'inertie : {n90}",
-            f"Nombre d'axes pour 95 % d'inertie : {n95}",
-        ],
-    )
-
-    write_exploration_guide_section(
-        "ACM",
-        f"Dossier résultats : {RESULTS_DIR}\n"
-        "mca_screeplot.png : structure des variables qualitatives.\n"
-        "mca_modality_contributions_dim1/2.png : modalités qui structurent chaque axe.\n"
-        "mca_asymmetric_map.png : liens profils élèves ↔ catégories.\n"
-        f"Axes conseillés : {n90} (90 %), {n95} (95 %).",
-    )
-
-    print_exploration_footer(
-        "ACM", len(acm_cols), n90, n95, top1, top2, results_dir=RESULTS_DIR
-    )
+    from factor_analysis.runners import run_acm
+    run_acm(df, RESULTS_DIR, save=True)
 
 
 if __name__ == "__main__":

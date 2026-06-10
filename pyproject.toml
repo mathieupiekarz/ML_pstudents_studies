@@ -16,5 +16,8 @@ dependencies = [
     "scikit-posthocs",
 ]
 
+[project.optional-dependencies]
+notebook = ["ipywidgets>=8.0", "jupyter>=1.0", "ipython>=8.0"]
+
 [tool.uv]
 package = false
