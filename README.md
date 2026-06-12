@@ -77,9 +77,18 @@ Template versionné : [`src/config.example.py`](src/config.example.py) → copie
 ### Notebook récapitulatif (flux principal)
 
 ```bash
-uv sync --extra notebook
-uv run jupyter notebook analyse_factorielle_recap.ipynb
+uv sync
+uv run python scripts/setup_pandoc.py   # une fois après chaque uv sync
+./scripts/jupyter.sh notebook analyse_factorielle_recap.ipynb
 ```
+
+Export PDF :
+
+- **Menu Jupyter** : *File → Save and Export Notebook As → **PDF via HTML***
+  (l'export LaTeX est désactivé : il plante sur les caractères grecs / tableaux).
+- **Ligne de commande** : `./scripts/export_pdf.sh 01_reduction_clustering.ipynb`
+
+**Redémarrez Jupyter** si le serveur tournait déjà avant `setup_pandoc.py`.
 
 Le notebook [`analyse_factorielle_recap.ipynb`](analyse_factorielle_recap.ipynb) suit un **pipeline en 3 boutons** (chaque étape dépend de la précédente). **L'AFTD n'y est pas incluse** (trop d'axes MDS, graphiques illisibles) ; utilisez le script CLI si besoin.
 
@@ -113,6 +122,20 @@ Résultats :
 - **ACP_mixte** (`src/ACP_mixte/results/<nom>/`) : quantitatives + qualitatives one-hot
 - **FAMD** (`src/FAMD/outputs/<nom>/`) : vue globale mixte
 - **AFTD** (`src/AFTD/results/<nom>/`) : MDS sur distance de Gower
+
+## Notebooks du rapport SY09 (décrochage maths)
+
+Pipeline Jupyter pour le projet sur `Data/student-mat.csv` (395 élèves) :
+
+| Notebook | Rôle |
+|----------|------|
+| [`00_analyse_preliminaire.ipynb`](00_analyse_preliminaire.ipynb) | Exploration, tests univariés, choix des 8 variables |
+| [`01_reduction_clustering.ipynb`](01_reduction_clustering.ipynb) | Clustering sur 70 % (holdout réservé au supervisé) — AFTD, CAH-Ward, K-means |
+| [`01_reduction_clustering_v2.ipynb`](01_reduction_clustering_v2.ipynb) | Variante V1 sur 100 % des données, seuil de variance AFTD configurable (`VARIANCE_THRESHOLD`) |
+| [`02_apprentissage_supervise.ipynb`](02_apprentissage_supervise.ipynb) | Phase A–C : lien cluster/décrochage, prédiction supervisée du décrochage |
+| [`03_cluster_supervise.ipynb`](03_cluster_supervise.ipynb) | Pipeline V2 (seuil variance AFTD, K auto) sur **100 %** + validation §10–16 |
+
+Lancement : `./scripts/jupyter.sh notebook <fichier>.ipynb` · Export PDF : `./scripts/export_pdf.sh <fichier>.ipynb`
 
 ## Clustering (`src/CLUSTERING/`)
 
@@ -165,7 +188,11 @@ factoriels, heatmap, diagnostics de régression, arbre élagué).
 ## Commandes CLI
 
 Référence de tous les scripts Python exécutables du projet. Prérequis commun :
-`uv sync` depuis la racine du dépôt.
+
+```bash
+uv sync
+uv run python scripts/setup_pandoc.py
+```
 
 ### Préparation des données
 
