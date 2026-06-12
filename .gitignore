@@ -63,6 +63,16 @@ src/SUPERVISED/results/*
 !.env.example
 
 
+# Rapport LaTeX
+RAPPORT/build/
+RAPPORT/*.aux
+RAPPORT/*.log
+RAPPORT/*.out
+RAPPORT/*.toc
+RAPPORT/*.fls
+RAPPORT/*.fdb_latexmk
+RAPPORT/*.synctex.gz
+
 # autres
 notes.*
 src/config.py
