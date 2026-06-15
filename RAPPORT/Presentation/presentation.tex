@@ -262,7 +262,7 @@
   \column{0.55\textwidth}
     \includegraphics[width=\linewidth]{../figures/03_aftd_scree_shepard.png}\\[2pt]
     \centering{\footnotesize
-      \textbf{2 axes} · 44,9\,\% inertie ·
+      \textbf{3 axes} · 58,1\,\% inertie ·
       Shepard $r=0{,}90$ · RMSE $=6{,}5\,\%\,d_\mathrm{max}$
     }
 \end{columns}
@@ -271,7 +271,7 @@
 % ────────────────────────────────────────────────────────
 %  MINUTE 2 : Slide 4 : Clustering K = 4
 % ────────────────────────────────────────────────────────
-\begin{frame}{Clustering : 4 profils robustes : ARI\,=\,1,000}
+\begin{frame}{Clustering : 4 profils robustes : ARI\,=\,0,98}
 \begin{columns}[c]
   \column{0.50\textwidth}
     \includegraphics[width=\linewidth]{../figures/03_plan_factoriel_clusters.png}
@@ -279,9 +279,9 @@
   \column{0.47\textwidth}
     \begin{alertblock}{Convergence CAH-Ward / K-means}
       \footnotesize\centering
-      $\mathrm{ARI}=1{,}000\;\Rightarrow$ \textbf{partitions identiques}\\
+      $\mathrm{ARI}=0{,}98\;\Rightarrow$ \textbf{partitions très similaires}\\
       Résultat robuste, indépendant de la méthode.\\
-      {\scriptsize\itshape $K=4$ choisi par saut d'inertie (dendrogramme).}
+      {\scriptsize\itshape $K=4$ choisi par la méthode de la silhouette.}
     \end{alertblock}
     \vspace{4pt}
     {\footnotesize
