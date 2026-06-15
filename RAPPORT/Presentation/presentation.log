@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.15)  15 JUN 2026 22:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.15)  15 JUN 2026 23:11
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -891,60 +891,66 @@ Package pdftex.def Info: ../figures/UTCLOGO.png  used on input line 149.
 
 {C:/Users/mathe/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ec.enc}{C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-ts1.enc} <../figures/UTCLOGO.png>]
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <7> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 191.
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 191.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 193.
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/lm\ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman (RS)
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 191.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/lm\omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 191.
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/lm\omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 191.
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/lm\omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 191.
+(Font)              <7> on input line 193.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 191.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 191.
+(Font)              <5> on input line 193.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 191.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 193.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/microtype\mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 191.
+(Font)              <10> on input line 193.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <6> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 193.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 191.
+(Font)              <6> on input line 193.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 191.
+(Font)              <9> on input line 193.
 <../figures/00_trajectoires_decrochage.png, id=93, 1001.6622pt x 370.0224pt>
 File: ../figures/00_trajectoires_decrochage.png Graphic file (type png)
 <use ../figures/00_trajectoires_decrochage.png>
-Package pdftex.def Info: ../figures/00_trajectoires_decrochage.png  used on input line 191.
+Package pdftex.def Info: ../figures/00_trajectoires_decrochage.png  used on input line 193.
 (pdftex.def)             Requested size: 235.83893pt x 87.119pt.
- [2
+
+Overfull \vbox (17.10149pt too high) detected at line 193
+ []
+
+[2
 
 {C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-rm.enc}{C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathex.enc}{C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/lm/lm-mathsy.enc} <../figures/00_trajectoires_decrochage.png>]
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <9> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 228.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 231.
 LaTeX Font Info:    Font shape `T1/lmss/bx/it' in size <7> not available
-(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 228.
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 228.
+(Font)              Font shape `T1/lmss/bx/sl' tried instead on input line 231.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 231.
  (C:\Users\mathe\AppData\Local\Programs\MiKTeX\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
@@ -952,62 +958,61 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+LaTeX Font Info:    Font shape `TS1/lmss/m/it' in size <6> not available
+(Font)              Font shape `TS1/lmss/m/sl' tried instead on input line 231.
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <7> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 228.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 231.
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <8> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 228.
-<../figures/00_discriminants.png, id=145, 1073.9322pt x 851.70195pt>
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 231.
+<../figures/00_discriminants.png, id=147, 1073.9322pt x 851.70195pt>
 File: ../figures/00_discriminants.png Graphic file (type png)
 <use ../figures/00_discriminants.png>
-Package pdftex.def Info: ../figures/00_discriminants.png  used on input line 228.
+Package pdftex.def Info: ../figures/00_discriminants.png  used on input line 231.
 (pdftex.def)             Requested size: 238.28706pt x 188.9735pt.
 
-Overfull \vbox (4.49388pt too high) detected at line 228
+Overfull \vbox (4.49388pt too high) detected at line 231
  []
 
 [3
 
  <../figures/00_discriminants.png>]
-<../figures/03_aftd_scree_shepard.png, id=201, 929.3922pt x 355.92975pt>
+<../figures/03_aftd_scree_shepard.png, id=204, 929.3922pt x 355.92975pt>
 File: ../figures/03_aftd_scree_shepard.png Graphic file (type png)
 <use ../figures/03_aftd_scree_shepard.png>
-Package pdftex.def Info: ../figures/03_aftd_scree_shepard.png  used on input line 264.
+Package pdftex.def Info: ../figures/03_aftd_scree_shepard.png  used on input line 269.
 (pdftex.def)             Requested size: 240.21063pt x 91.99101pt.
  [4
 
  <../figures/03_aftd_scree_shepard.png>]
-<../figures/03_plan_factoriel_clusters.png, id=232, 712.22086pt x 496.4949pt>
+<../figures/03_plan_factoriel_clusters.png, id=236, 712.22086pt x 496.4949pt>
 File: ../figures/03_plan_factoriel_clusters.png Graphic file (type png)
 <use ../figures/03_plan_factoriel_clusters.png>
-Package pdftex.def Info: ../figures/03_plan_factoriel_clusters.png  used on input line 300.
+Package pdftex.def Info: ../figures/03_plan_factoriel_clusters.png  used on input line 306.
 (pdftex.def)             Requested size: 218.3721pt x 152.2224pt.
  [5
 
  <../figures/03_plan_factoriel_clusters.png>]
-<../figures/02_phase_a_decrochage_cluster.png, id=273, 892.17316pt x 355.20705pt>
+<../figures/02_phase_a_decrochage_cluster.png, id=277, 892.17316pt x 355.20705pt>
 File: ../figures/02_phase_a_decrochage_cluster.png Graphic file (type png)
 <use ../figures/02_phase_a_decrochage_cluster.png>
-Package pdftex.def Info: ../figures/02_phase_a_decrochage_cluster.png  used on input line 341.
+Package pdftex.def Info: ../figures/02_phase_a_decrochage_cluster.png  used on input line 348.
 (pdftex.def)             Requested size: 214.00705pt x 85.20265pt.
 
 
-LaTeX Warning: Command \' invalid in math mode on input line 341.
-
-
-LaTeX Warning: Command \' invalid in math mode on input line 341.
+LaTeX Warning: Command \' invalid in math mode on input line 348.
 
 [6
 
  <../figures/02_phase_a_decrochage_cluster.png>]
-<../figures/02_phase_b_roc_np.png, id=350, 1204.37955pt x 355.92975pt>
+<../figures/02_phase_b_roc_np.png, id=354, 1204.37955pt x 355.92975pt>
 File: ../figures/02_phase_b_roc_np.png Graphic file (type png)
 <use ../figures/02_phase_b_roc_np.png>
-Package pdftex.def Info: ../figures/02_phase_b_roc_np.png  used on input line 378.
+Package pdftex.def Info: ../figures/02_phase_b_roc_np.png  used on input line 386.
 (pdftex.def)             Requested size: 192.1685pt x 56.78699pt.
-<../figures/02_phase_c_triangulation.png, id=351, 1043.94016pt x 355.92975pt>
+<../figures/02_phase_c_triangulation.png, id=355, 1043.94016pt x 355.92975pt>
 File: ../figures/02_phase_c_triangulation.png Graphic file (type png)
 <use ../figures/02_phase_c_triangulation.png>
-Package pdftex.def Info: ../figures/02_phase_c_triangulation.png  used on input line 378.
+Package pdftex.def Info: ../figures/02_phase_c_triangulation.png  used on input line 386.
 (pdftex.def)             Requested size: 231.47389pt x 78.91849pt.
  [7
 
@@ -1030,17 +1035,17 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 29653 strings out of 467871
- 592210 string characters out of 5418376
- 995710 words of memory out of 5000000
- 57799 multiletter control sequences out of 15000+600000
- 710270 words of font info for 148 fonts, out of 8000000 for 9000
+ 29675 strings out of 467871
+ 592632 string characters out of 5418376
+ 996710 words of memory out of 5000000
+ 57812 multiletter control sequences out of 15000+600000
+ 714005 words of font info for 154 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,15n,123p,1057b,985s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss8.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbo10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbx10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso8.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtk10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt8.pfb>
-Output written on presentation.pdf (7 pages, 1799622 bytes).
+<C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmbx7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmex10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi6.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmmi7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr6.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmss8.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbo10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmssbx10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsso8.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy5.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy6.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmsy7.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtk10.pfb><C:/Users/mathe/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt8.pfb>
+Output written on presentation.pdf (7 pages, 1828804 bytes).
 PDF statistics:
- 495 PDF objects out of 1000 (max. 8388607)
+ 513 PDF objects out of 1000 (max. 8388607)
  15 named destinations out of 1000 (max. 500000)
- 55871 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 59967 words of extra memory for PDF output out of 61914 (max. 10000000)
 

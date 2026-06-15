@@ -184,6 +184,8 @@
       \end{tabular}\\[2pt]
       Signal propre aux mathématiques.
     \end{exampleblock}
+    \vspace{1pt}
+    {\scriptsize\itshape\centering$\hookrightarrow$Objectif : détecter ces élèves \emph{avant} la fin d'année, via les seules variables de rentrée.\par}
 
   \column{0.54\textwidth}
     \includegraphics[width=\linewidth]{../figures/00_trajectoires_decrochage.png}
@@ -216,7 +218,8 @@
         \code{age}          & \code{schoolsup}  \\
         \code{Walc}         & \code{romantic}   \\
         \bottomrule
-      \end{tabular}
+      \end{tabular}\\[-1pt]
+      {\scriptsize\itshape Tests : Mann-Whitney (num.) · $\chi^2$ (cat.)}
     \end{block}
     \vspace{3pt}
     {\footnotesize\textcolor{RedUTC}{\textbf{Exclusion \code{absences} :}}
@@ -233,7 +236,7 @@
 \begin{frame}{Réduction dimensionnelle : distance de Gower et AFTD}
 \begin{columns}[c]
   \column{0.42\textwidth}
-    \begin{block}{Distance de Gower : variables hétérogènes (Ch.\,2)}
+    \begin{block}{Distance de Gower : variables hétérogènes}
       \footnotesize
       Pour $p$ variables, entre individus $i$ et $j$ :
       $$d_{ij} = \frac{1}{p}\sum_{k=1}^{p}\delta_{ij}^{(k)}$$
@@ -242,16 +245,18 @@
         \item Ordinale : $\delta^{(k)} = |x_i^{(k)}-x_j^{(k)}|\,/\,r_k$
         \item Binaire  : $\delta^{(k)} = \mathbf{1}[x_i^{(k)}\neq x_j^{(k)}]$
       \end{itemize}
+      {\scriptsize\itshape$\hookrightarrow$Euclidienne inadaptée aux variables mixtes num./cat.}
     \end{block}
     \vspace{3pt}
-    \begin{block}{AFTD : Analyse Factorielle des Distances (Ch.\,6)}
+    \begin{block}{AFTD : Analyse Factorielle des Distances}
       \footnotesize
       Double centrage de $\Delta^2$ :
       $$W = -\tfrac{1}{2}\,Q_n\Delta^2 Q_n,\quad
         Q_n = I_n - \tfrac{\mathbf{1}\mathbf{1}^\top}{n}$$
       \vspace{-4pt}
       Décomposition spectrale $W=U\Lambda U^\top$
-      $\;\Rightarrow\;$ coordonnées $C = U_+\Lambda_+^{1/2}$
+      $\;\Rightarrow\;$ coordonnées $C = U_+\Lambda_+^{1/2}$\\
+      {\scriptsize\itshape$\hookrightarrow$L'ACP requiert des variables brutes ; l'AFTD opère directement sur $\Delta$.}
     \end{block}
 
   \column{0.55\textwidth}
@@ -272,10 +277,11 @@
     \includegraphics[width=\linewidth]{../figures/03_plan_factoriel_clusters.png}
 
   \column{0.47\textwidth}
-    \begin{alertblock}{Convergence CAH-Ward / K-means (Ch.\,7)}
+    \begin{alertblock}{Convergence CAH-Ward / K-means}
       \footnotesize\centering
       $\mathrm{ARI}=1{,}000\;\Rightarrow$ \textbf{partitions identiques}\\
-      Résultat robuste, indépendant de la méthode.
+      Résultat robuste, indépendant de la méthode.\\
+      {\scriptsize\itshape $K=4$ choisi par saut d'inertie (dendrogramme).}
     \end{alertblock}
     \vspace{4pt}
     {\footnotesize
@@ -314,8 +320,9 @@
     \end{block}
 
   \column{0.48\textwidth}
-    \begin{block}{Phase B : AUC-ROC (CV 5-fold, Ch.\,13)}
+    \begin{block}{Phase B : AUC-ROC (CV 5-fold)}
       \footnotesize
+      {\scriptsize\itshape Param. (LDA, LogReg) vs non-param. (CART, LightGBM).}\\[2pt]
       \renewcommand{\arraystretch}{1.1}
       \begin{tabular}{lcc}
         \toprule
@@ -325,17 +332,17 @@
         \rowcolor{GreenHL}
         \textbf{LogReg} \scriptsize(Ch.11) & \textbf{0,747} & 28,9\,\% \\
         CART \scriptsize(Ch.12)        & 0,632  & 25,1\,\%   \\
-        LightGBM \scriptsize(Ch.12§4)  & 0,702  & 21,3\,\%   \\
+        LightGBM \scriptsize(Ch.12)  & 0,702  & 21,3\,\%   \\
         \bottomrule
       \end{tabular}\\[3pt]
-      \code{class\_weight='balanced'} : déséquilibre 1:10\\
+      \code{class\_weight='balanced'} : déséquilibre 1:10 — sans correction, l'accuracy atteint 90\,\% en prédisant systématiquement «\,non\,»\\
       Estimateurs : resubst. · holdout · CV-5 · \textbf{boot.632}
     \end{block}
     \vspace{3pt}
     \begin{alertblock}{Limite fondamentale}
       \footnotesize
       AUC $>0{,}5$ : discrimination réelle au-delà de l'aléatoire.\\
-      Prédiction individuelle limitée ($n_\mathrm{décrocheurs}=38$).
+      Prédiction individuelle limitée ($n_{\text{décrocheurs}}=38$).
     \end{alertblock}
 \end{columns}
 \end{frame}
@@ -346,10 +353,11 @@
 \begin{frame}{Règle de Neyman-Pearson, triangulation et conclusion}
 \begin{columns}[c]
   \column{0.44\textwidth}
-    \begin{block}{Neyman-Pearson (Ch.9 §2) sur LogReg}
+    \begin{block}{Neyman-Pearson sur LogReg}
       \footnotesize
       Maximiser le rappel sous $\mathrm{FPR}\leq\alpha^*=0{,}20$ :
       $$s^*=\arg\max_{s\,:\,\mathrm{FPR}(s)\leq 0{,}20}\mathrm{TPR}(s)$$
+      {\scriptsize\itshape Coût asymétrique : manquer un décrocheur $\gg$ fausse alarme.}
     \end{block}
     \vspace{2pt}
     \includegraphics[width=\linewidth]{../figures/02_phase_b_roc_np.png}\\[-1pt]
